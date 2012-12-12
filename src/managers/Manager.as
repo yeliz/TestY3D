@@ -1,7 +1,9 @@
 package managers
 {
+	import com.yogurt3d.core.sceneobjects.SceneObjectContainer;
 	import com.yogurt3d.core.texture.TextureMap;
 	
+	import flash.display.Scene;
 	import flash.utils.Dictionary;
 
 	public class Manager
@@ -71,6 +73,10 @@ package managers
 		
 		public function getRefMap(_key:String):TextureMap{
 			
+			return null;
+		}
+		
+		public function get avatar():SceneObjectContainer{
 			return null;
 		}
 	}

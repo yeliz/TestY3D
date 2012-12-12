@@ -22,6 +22,8 @@ package
 	
 	import managers.ResourceManager;
 	
+	import skybox.Desert2SkyBox;
+	
 	[SWF(width="1200", height="700", frameRate="60")]
 	public class TestY3D extends Sprite
 	{
@@ -45,7 +47,7 @@ package
 			setup.scene.sceneColor.g = 0.3;
 			setup.scene.sceneColor.b = 0.3;
 			
-			//TargetSetup(setup).scene.skyBox = new Desert2SkyBox();
+			TargetSetup(setup).scene.skyBox = new Desert2SkyBox();
 			
 			TargetSetup(setup).camera.frustum.setProjectionPerspective( 75, 1200/700, 1, 1000);
 			setup.camera.dist = 100;

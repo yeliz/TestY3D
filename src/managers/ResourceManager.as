@@ -67,6 +67,7 @@ package managers
 			}
 			m_avatarRS[44] = "../resources/avatar/FEMALE/F_H_Face.y3d";
 			m_avatarRS[45] = "../resources/avatar/FEMALE/F_H_Scalp.y3d";
+			m_avatarRS[46] = "../resources/avatar/FEMALE/F_H_Sac_001.y3d";
 			
 			m_headPath = "../resources/head/Head.y3d";
 		//	m_manPath = "../resources/man/Man_animated.y3d";
@@ -74,12 +75,18 @@ package managers
 			m_avatarPath = "../resources/avatar/Erkek_Avatar_HP.y3d";
 //			m_alphaliPath = "../resources/Kagithane/Alfali_Urunler.y3d";
 			
-			m_imageDict["colorMapHead"] = "../resources/head/Head-Color.jpg";
-			m_imageDict["normalMapHead"] = "../resources/head/Head-Normal.jpg";
-			m_imageDict["specularMapHead"] = "../resources/head/Head-Spec.jpg";
+//			m_imageDict["colorMapHead"] = "../resources/head/Head-Color.jpg";
+//			m_imageDict["normalMapHead"] = "../resources/head/Head-Normal.jpg";
+//			m_imageDict["specularMapHead"] = "../resources/head/Head-Spec.jpg";
 			
 			m_imageDict["FemaleBody"] = "../resources/avatar/FEMALE/Govde.png";
 			m_imageDict["FemaleSurat"] = "../resources/avatar/FEMALE/Surat_yeni.png";
+			m_imageDict["FemaleSac"] = "../resources/avatar/FEMALE/sac_001_yeni_01.png";
+			
+			m_imageDict["SpecularMap"] = "../resources/ozerTest/CheckerBoard.jpg";
+			m_imageDict["SpecularFaceMap"] = "../resources/avatar/FEMALE/Surat_speculari.png";
+			m_imageDict["SpecularSac"] = "../resources/avatar/FEMALE/sacSpecular.png";
+			m_imageDict["ShineMask"] = "../resources/defaults/gloss_map.jpg";
 			
 //			m_imageDict["normal"] = "../resources/set/mat_normal_1.jpg";
 //			m_imageDict["color"] = "../resources/set/checkercolor.gif";
@@ -94,11 +101,11 @@ package managers
 //			m_imageDict["normalMapMan"] = "../resources/man/Man_nml.png";
 //			m_imageDict["specularMapMan"] = "../resources/man/Man_spm.png";
 			
-			m_imageDict["difGradient"] = "../resources/Diffuse_Gradient.png";
-			m_imageDict["ambGradient"] = "../resources/Ambient_Gradient.png";
+//			m_imageDict["difGradient"] = "../resources/Diffuse_Gradient.png";
+//			m_imageDict["ambGradient"] = "../resources/Ambient_Gradient.png";
 //			
-			m_imageDict["colorMapAvatar"] = "../resources/avatar/Vucud.png";
-			m_imageDict["specularMapAvatar"] = "../resources/man/Man_spm.png";
+	//		m_imageDict["colorMapAvatar"] = "../resources/avatar/Vucud.png";
+	//		m_imageDict["specularMapAvatar"] = "../resources/man/Man_spm.png";
 			
 //			m_imageDict["colorMapSphere"] = "../resources/y3d/mat_color_1.png";
 //			m_imageDict["normalMapSphere"] = "../resources/y3d/mat_normal_1.jpg";
@@ -130,15 +137,15 @@ package managers
 			m_loader.add(m_headPath, DataLoader, Y3D_Parser, {dataFormat: URLLoaderDataFormat.BINARY}  );
 			m_loader.add(m_avatarPath, DataLoader, Y3D_Parser, {dataFormat: URLLoaderDataFormat.BINARY}  );
 			
-			for(var key:Object in m_avatarRS){
+			for(key in m_avatarRS){
 				m_loader.add(m_avatarRS[key], DataLoader, Y3D_Parser, {dataFormat: URLLoaderDataFormat.BINARY}  );
 			}
 //			m_loader.add(m_alphaliPath, DataLoader, Y3D_Parser, {dataFormat: URLLoaderDataFormat.BINARY}  );
 //		//	m_loader.add(m_manPath, DataLoader, Y3D_Parser, {dataFormat: URLLoaderDataFormat.BINARY}  );
 			m_loader.add( "../resources/avatar/animation/f_run_001.yoa", DataLoader, YOA_Parser, {dataFormat: URLLoaderDataFormat.BINARY} );
-			//m_loader.add( "../resources/avatar/animation/f_pointing_001.yoa", DataLoader, YOA_Parser, {dataFormat: URLLoaderDataFormat.BINARY} );
-			//m_loader.add( "../resources/avatar/animation/f_sitting_001.yoa", DataLoader, YOA_Parser, {dataFormat: URLLoaderDataFormat.BINARY} );
-			//m_loader.add( "../resources/avatar/animation/f_walk_001.yoa", DataLoader, YOA_Parser, {dataFormat: URLLoaderDataFormat.BINARY} );
+			m_loader.add( "../resources/avatar/animation/f_idle_001.yoa", DataLoader, YOA_Parser, {dataFormat: URLLoaderDataFormat.BINARY} );
+			m_loader.add( "../resources/avatar/animation/f_sitting_001.yoa", DataLoader, YOA_Parser, {dataFormat: URLLoaderDataFormat.BINARY} );
+			m_loader.add( "../resources/avatar/animation/f_walk_001.yoa", DataLoader, YOA_Parser, {dataFormat: URLLoaderDataFormat.BINARY} );
 
 		}
 		
@@ -155,6 +162,9 @@ package managers
 		public function set loader(value:LoadManager):void
 		{
 			m_loader = value;
+		}
+		public override function getTexture(_key:String):TextureMap{
+			return getMap(_key);
 		}
 		
 		public function getMap(_key:String):TextureMap{
@@ -202,7 +212,9 @@ package managers
 			for(var key:Object in m_avatarRS){
 				obj = new SceneObjectRenderable;
 				obj.geometry = m_loader.getLoadedContent(m_avatarRS[key]);
-				if(key != 44 && key != 45)
+				if(key == 46)
+					obj.material = new MaterialYogurtistanAvatar(UIManager.GRADIENT,  null, getMap("FemaleSac"));
+				else if(key != 44 && key != 45)
 					obj.material = new MaterialYogurtistanAvatar(UIManager.GRADIENT,  null, getMap("FemaleBody"));
 				else
 					obj.material = new MaterialYogurtistanAvatar(UIManager.GRADIENT,  null, getMap("FemaleSurat"));
@@ -212,11 +224,17 @@ package managers
 				
 				cont.addChild(obj);
 				
-				SkinController(SkeletalAnimatedMesh(obj.geometry).controller).addAnimation("RUN",m_loader.getLoadedContent( "../resources/avatar/animation/f_run_001.yoa"));
-				SkinController(SkeletalAnimatedMesh(obj.geometry).controller).playAnimation("RUN");
+				SkinController(SkeletalAnimatedMesh(obj.geometry).controller).addAnimation("RUN", m_loader.getLoadedContent( "../resources/avatar/animation/f_run_001.yoa"));
+				SkinController(SkeletalAnimatedMesh(obj.geometry).controller).addAnimation("IDLE", m_loader.getLoadedContent( "../resources/avatar/animation/f_idle_001.yoa"));
+				SkinController(SkeletalAnimatedMesh(obj.geometry).controller).addAnimation("SITTING", m_loader.getLoadedContent( "../resources/avatar/animation/f_sitting_001.yoa"));
+				SkinController(SkeletalAnimatedMesh(obj.geometry).controller).addAnimation("WALK", m_loader.getLoadedContent( "../resources/avatar/animation/f_walk_001.yoa"));
+				
+			
+				SkinController(SkeletalAnimatedMesh(obj.geometry).controller).playAnimation("IDLE");
 				//m_loader.add(m_avatarRS[key], DataLoader, Y3D_Parser, {dataFormat: URLLoaderDataFormat.BINARY}  );
 			}
 
+			cont.pickEnabledChildren = true;
 			return cont;
 		}
 		

@@ -47,10 +47,10 @@ package
 			TestSetup(setup).scene.sceneColor.b = 0.0;
 			TestSetup(setup).scene.sceneColor.a = 1.0;
 			
-			TestSetup(setup).camera.transformation.z = 50;
-		//	TestSetup(setup).camera.transformation.y = 20;
+			TestSetup(setup).camera.transformation.z = 20;
+			TestSetup(setup).camera.transformation.y = 20;
 //			TestSetup(setup).camera.transformation.x = -120;
-//	/		TestSetup(setup).camera.transformation.rotationX = 30;
+			TestSetup(setup).camera.transformation.rotationX = -20;
 //			TestSetup(setup).camera.transformation.rotationY = -30;
 			
 			
@@ -78,26 +78,26 @@ package
 				light1.transformation.x = 0;
 				light1.transformation.y = 150;
 				light1.transformation.z = -100;
-				light1.transformation.rotationY = 180;
+				light1.transformation.rotationY = 0;
 				light1.transformation.rotationX = -60;
-				
-				light1.color.r = 0.752;
-				light1.color.g = 0.662;
-				light1.color.b = 0.517;
-
+//				
+//				light1.color.r = 0.752;
+//				light1.color.g = 0.662;
+//				light1.color.b = 0.517;
+				light1.color = Color.toRGB(0xFFFFFF);
 				TestSetup(setup).scene.addChild( light1 );
 
-//				uiMan.createLightUI(light1, 0, 0);	
-//				uiMan.createAvatarUI(1000, 0 , m_avatar);
-//				uiMan.createGradient(0, 450);
+				uiMan.createLightUI(light1, 0, 0);	
+				uiMan.createAvatarUI(1000, 0 , m_avatar);
+				uiMan.createGradient(0, 450);
 				//createUI();
 			});
 			
 			loader.start();
 			
 			var stats:Stats = new Stats(TestSetup(setup).viewport);
-			stats.x = 1130;
-			stats.y = 600;
+			stats.x = TestSetup(setup).viewport.width - stats.WIDTH - 1;
+			stats.y = TestSetup(setup).viewport.height - stats.HEIGHT - 1;
 			
 			this.addChild(stats);
 			

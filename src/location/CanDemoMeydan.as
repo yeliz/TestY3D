@@ -101,7 +101,7 @@ package location
 			emmisiveMaps["kepenk003"] 	= _path+"Kepenk_03_Emissive.png";
 			emmisiveMaps["kepenk004"] 	= _path+"Kepenk_04_Emissive.png";
 			emmisiveMaps["kepenk007"] 	= _path+"Kepenk_07_Emissive.png";
-			emmisiveMaps["lambalarLamba"] = _path+"Lambalar_Emmisive.png";
+			emmisiveMaps["lambalarLamba"] = _path+"Lambalar_Emmisive.jpg";
 			emmisiveMaps["magicVitrin"] 	= _path+"Magicform_vitrin_emmisive.jpg";
 			emmisiveMaps["matrakci"] 		= _path+"Matrakci_Emissive.png";
 			emmisiveMaps["merdiven"] 		= _path+"Mermer_Emissive.png";

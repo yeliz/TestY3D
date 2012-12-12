@@ -6,12 +6,16 @@ package managers
 	import com.bit101.components.Component;
 	import com.bit101.components.HSlider;
 	import com.bit101.components.Label;
+	import com.bit101.components.NumericStepper;
 	import com.bit101.components.Panel;
 	import com.bit101.components.PushButton;
 	import com.bit101.components.Style;
 	import com.bit101.components.Window;
+	import com.yogurt3d.core.animation.controllers.SkinController;
+	import com.yogurt3d.core.geoms.SkeletalAnimatedMesh;
 	import com.yogurt3d.core.lights.Light;
 	import com.yogurt3d.core.render.post.PostProcessingEffectBase;
+	import com.yogurt3d.core.sceneobjects.SceneObjectContainer;
 	import com.yogurt3d.core.sceneobjects.SceneObjectRenderable;
 	import com.yogurt3d.core.sceneobjects.event.MouseEvent3D;
 	import com.yogurt3d.core.texture.TextureMap;
@@ -159,19 +163,14 @@ package managers
 		 * AVATAR MATERIAL
 		 * 
 		 * *****************************************************************************************************/
-		public function createAvatarUI(_posX:Number=0, _posY:Number=0, _avatar:SceneObjectRenderable=null):void{
-			var colorChooserMat:ColorChooser;
-			var kSpecSlider:HSlider;
-			var fSpecPowerSlider:HSlider;
-			var kRimSlider:HSlider;
-			var fRimPowerSlider:HSlider;
-			var ksSlider:HSlider;
-			var krSlider:HSlider;
-			var cMap:CheckBox;
-			var sMap:CheckBox;
-			var sMask:CheckBox;
+		public function createAvatarUI(_posX:Number=0, _posY:Number=0, _avatar:SceneObjectContainer=null):void{
+
 			var opacitySlider:HSlider;
 			var blendSlider:HSlider;
+			var opLabel:Label;
+			var blendLabel:Label;
+			var freRefLabel:Label;
+			var animations:ComboBox;
 			
 			var materialWindow:Window = new Window(m_parent, _posX, _posY, "Material");
 			materialWindow.width = 200;
@@ -179,106 +178,277 @@ package managers
 			
 			var lab:Label  = new Label(materialWindow, 5,  5, "Opacity:");
 			
-			opacitySlider = new HSlider(materialWindow, lab.x+ lab.width + 5, lab.y, function():void{
+			opacitySlider = new HSlider(materialWindow, lab.x+ lab.width + 5, lab.y + 4, function():void{
 				
-				MaterialYogurtistanAvatar(_avatar.material).opacity = opacitySlider.value;
+				var obj:SceneObjectRenderable;
+				for(var i:uint=0; i < _avatar.children.length; i++){
+					obj = _avatar.children[i];
+					MaterialYogurtistanAvatar(obj.material).opacity = opacitySlider.value;	
+				}
+				opLabel.text = ""+opacitySlider.value;
 			});
 			
 			opacitySlider.minimum = 0;
 			opacitySlider.maximum = 1;
-			opacitySlider.value = MaterialYogurtistanAvatar(_avatar.material).opacity ;
+			opacitySlider.value = MaterialYogurtistanAvatar((_avatar.children[0] as SceneObjectRenderable).material).opacity ;
 			opacitySlider.tick = 0.1;
+			
+			opLabel  = new Label(materialWindow, opacitySlider.x+ opacitySlider.width + 8,  lab.y,""+opacitySlider.value);
 			
 			lab  = new Label(materialWindow, 5,  30, "Blend const:");
 			
-			blendSlider = new HSlider(materialWindow, lab.x+ lab.width + 5, lab.y, function():void{	
-				MaterialYogurtistanAvatar(_avatar.material).blendConstant = blendSlider.value;
+			blendSlider = new HSlider(materialWindow, lab.x+ lab.width + 5, lab.y + 4, function():void{	
+				var obj:SceneObjectRenderable;
+				for(var i:uint=0; i < _avatar.children.length; i++){
+					obj = _avatar.children[i];
+					MaterialYogurtistanAvatar(obj.material).blendConstant = blendSlider.value;
+				}
+				blendLabel.text = ""+blendSlider.value;
 			});
 			
 			blendSlider.minimum = 0;
 			blendSlider.maximum = 10;
-			blendSlider.value = MaterialYogurtistanAvatar(_avatar.material).blendConstant;
+			blendSlider.value = MaterialYogurtistanAvatar((_avatar.children[0] as SceneObjectRenderable).material).blendConstant;
 			blendSlider.tick = 0.1;
 			
-			lab = new Label(materialWindow, 5,  55, "Color:");
-			colorChooserMat = new ColorChooser( materialWindow, lab.width + 20, lab.y, 0xFFFFFF, function():void{
+			blendLabel  = new Label(materialWindow, blendSlider.x+ blendSlider.width + 8,  lab.y,""+blendSlider.value);
+//			
+
+			cMap = new CheckBox(materialWindow, 5, 55, "Color Map", function():void{
+				var obj:SceneObjectRenderable;
+				if(cMap.selected){
+					for(var i:uint=0; i < _avatar.children.length; i++){
+						obj = _avatar.children[i];
+						if(i == 46)
+							MaterialYogurtistanAvatar(obj.material).colorMap = m_rMan.getTexture("FemaleSac");
+						else if(i != 44 && i != 45)
+							MaterialYogurtistanAvatar(obj.material).colorMap = m_rMan.getTexture("FemaleBody");
+						else
+							MaterialYogurtistanAvatar(obj.material).colorMap = m_rMan.getTexture("FemaleSurat");
+					}
 				
-				var color:uint = colorChooserMat.value;
+				}else{
+					
+					for(i=0; i < _avatar.children.length; i++){
+						obj = _avatar.children[i];
+						MaterialYogurtistanAvatar(obj.material).colorMap = TextureMapDefaults.WHITEMIPMAP;
+					}
+				}
+
+			});
+			
+			cMap.selected = !(MaterialYogurtistanAvatar((_avatar.children[0] as SceneObjectRenderable).material).colorMap == TextureMapDefaults.WHITEMIPMAP);
+		
+			lab  = new Label(materialWindow, 5,  70, "FRESNEL");
+			
+			lab  = new Label(materialWindow, 5,  85, "fSpecPow:");
+			fSpecPowerSlider = new HSlider(materialWindow, lab.x+ lab.width + 5, lab.y, function():void{
+				var obj:SceneObjectRenderable;
+				for(var i:uint=0; i < _avatar.children.length; i++){
+					obj = _avatar.children[i];
+					MaterialYogurtistanAvatar(obj.material).fspecPower = fSpecPowerSlider.value;
+				}
+				freRefLabel.text = ""+(fSpecPowerSlider.value);
+			});
+			
+			fSpecPowerSlider.minimum = 0;
+			fSpecPowerSlider.maximum = 5;
+			fSpecPowerSlider.value = MaterialYogurtistanAvatar((_avatar.children[0] as SceneObjectRenderable).material).fspecPower;
+			fSpecPowerSlider.tick = 0.1;
+			
+			freRefLabel  = new Label(materialWindow, fSpecPowerSlider.x+ fSpecPowerSlider.width + 8,  lab.y,""+(fSpecPowerSlider.value));
+			
+			lab  = new Label(materialWindow, 5,  105, "fRimPow:");
+			
+			fRimPowerSlider = new HSlider(materialWindow, lab.x+ lab.width + 5, lab.y, function():void{
+				
+				var obj:SceneObjectRenderable;
+				for(var i:uint=0; i < _avatar.children.length; i++){
+					obj = _avatar.children[i];
+					MaterialYogurtistanAvatar(obj.material).fRimPower = fRimPowerSlider.value;
+				}
+				freRimLabel.text = ""+(fRimPowerSlider.value);
+			});
+			
+			fRimPowerSlider.minimum = 0;
+			fRimPowerSlider.maximum = 5;
+			fRimPowerSlider.value = MaterialYogurtistanAvatar((_avatar.children[0] as SceneObjectRenderable).material).fRimPower;
+			fRimPowerSlider.tick = 0.1;
+			var freRimLabel:Label  = new Label(materialWindow, fRimPowerSlider.x+ fRimPowerSlider.width + 8,  lab.y,""+(fRimPowerSlider.value));
+			
+			lab  = new Label(materialWindow, 5,  130, "SHINE");
+			
+			lab  = new Label(materialWindow, 5,  145, "shinness");
+			var shineSlider:NumericStepper = new NumericStepper(materialWindow, lab.x+ lab.width + 5, lab.y + 4, function():void{
+				
+				var obj:SceneObjectRenderable;
+				for(var i:uint=0; i < _avatar.children.length; i++){
+					obj = _avatar.children[i];
+					MaterialYogurtistanAvatar(obj.material).shineness = shineSlider.value;
+				}
+			});
+			
+			shineSlider.minimum = 0;
+			shineSlider.maximum = 200;
+			shineSlider.value = MaterialYogurtistanAvatar((_avatar.children[0] as SceneObjectRenderable).material).shineness;
+			shineSlider.step = 0.1;
+
+			var shineMap:CheckBox = new CheckBox(materialWindow, 5, 170, "Shine Mask", function():void{
+				var obj:SceneObjectRenderable;
+				if(shineMap.selected){
+					for(var i:uint=0; i < _avatar.children.length; i++){
+						obj = _avatar.children[i];
+//						if(i != 44)
+//							MaterialYogurtistanAvatar(obj.material).shinenessMask = m_rMan.getTexture("SpecularMap");
+//						else
+//							MaterialYogurtistanAvatar(obj.material).shinenessMask = m_rMan.getTexture("SpecularFaceMap");
+						
+						if(i == 44)
+							MaterialYogurtistanAvatar(obj.material).shinenessMask = m_rMan.getTexture("SpecularFaceMap");
+						else if(i == 46)
+							MaterialYogurtistanAvatar(obj.material).shinenessMask = m_rMan.getTexture("SpecularSac");
+						else
+							MaterialYogurtistanAvatar(obj.material).shinenessMask = m_rMan.getTexture("SpecularMap");
+					}
+				}else{
+					for(i=0; i < _avatar.children.length; i++){
+						obj = _avatar.children[i];
+						MaterialYogurtistanAvatar(obj.material).shinenessMask = null;
+					}
+				}
+			});
+			
+			lab  = new Label(materialWindow, 5,  190, "RIM");
+			lab  = new Label(materialWindow, 5,  205, "rim:");
+			var rimSlider:NumericStepper = new NumericStepper(materialWindow, lab.x+ lab.width + 5, lab.y + 4, function():void{
+				
+				var obj:SceneObjectRenderable;
+				for(var i:uint=0; i < _avatar.children.length; i++){
+					obj = _avatar.children[i];
+					MaterialYogurtistanAvatar(obj.material).rim = rimSlider.value;
+				}
+			});
+			
+			rimSlider.minimum = 0;
+			rimSlider.maximum = 1;
+			rimSlider.value = MaterialYogurtistanAvatar((_avatar.children[0] as SceneObjectRenderable).material).rim;
+			rimSlider.step = 0.1;
+			
+			lab  = new Label(materialWindow, 5,  225, "rimShine:");
+			var rimShineSlider:NumericStepper = new NumericStepper(materialWindow, lab.x+ lab.width + 5, lab.y + 4, function():void{
+				
+				var obj:SceneObjectRenderable;
+				for(var i:uint=0; i < _avatar.children.length; i++){
+					obj = _avatar.children[i];
+					MaterialYogurtistanAvatar(obj.material).rimShineness = rimShineSlider.value;
+				}
+			});
+			
+			rimShineSlider.minimum = 0;
+			rimShineSlider.maximum = 10;
+			rimShineSlider.value = MaterialYogurtistanAvatar((_avatar.children[0] as SceneObjectRenderable).material).rimShineness;
+			rimShineSlider.step = 0.1;
+			
+			lab  = new Label(materialWindow, 5,  250, "SPECULAR");
+			
+			// specularMap
+			var specMap:CheckBox = new CheckBox(materialWindow, 5, 270, "Spec Map", function():void{
+				var obj:SceneObjectRenderable;
+				if(specMap.selected){
+					for(var i:uint=0; i < _avatar.children.length; i++){
+						obj = _avatar.children[i];
+						
+						if(i == 44)
+							MaterialYogurtistanAvatar(obj.material).specularMap = m_rMan.getTexture("SpecularFaceMap");
+						else if(i == 46)
+							MaterialYogurtistanAvatar(obj.material).specularMap = m_rMan.getTexture("SpecularSac");
+						else
+							MaterialYogurtistanAvatar(obj.material).specularMap = m_rMan.getTexture("SpecularMap");
+				
+					}
+				}else{
+					for(i=0; i < _avatar.children.length; i++){
+						obj = _avatar.children[i];
+						MaterialYogurtistanAvatar(obj.material).specularMap = null;
+						MaterialYogurtistanAvatar(obj.material).specular = 1.0;
+					}
+					
+					specularSlider.value = 1;
+				}
+			});
+			
+			lab  = new Label(materialWindow, 5,  290, "specular:");
+			// specular
+			var specularSlider:NumericStepper = new NumericStepper(materialWindow, lab.x+ lab.width + 5, lab.y + 4, function():void{
+				
+				var obj:SceneObjectRenderable;
+				for(var i:uint=0; i < _avatar.children.length; i++){
+					obj = _avatar.children[i];
+					MaterialYogurtistanAvatar(obj.material).specular = specularSlider.value;
+				}
+			});
+			
+			specularSlider.minimum = 0;
+			specularSlider.maximum = 1;
+			specularSlider.value = MaterialYogurtistanAvatar((_avatar.children[0] as SceneObjectRenderable).material).specular;
+			specularSlider.step = 0.1;
+			// specularColor
+		
+			lab  = new Label(materialWindow, 80,  266, "SColor");
+			var specChooserMat:ColorChooser = new ColorChooser( materialWindow,115, 266, 0xFFFFFF, function():void{
+				
+				var color:uint = specChooserMat.value;
 				var m_color:Vector.<Number> = new Vector.<Number>;
 				m_color[0] = (color >> 16 & 255 ) / 255;
 				m_color[1] = (color >> 8 & 255) / 255;
 				m_color[2] = (color & 255) / 255;
 				
-				MaterialYogurtistanAvatar(_avatar.material).color = new Color(m_color[0], m_color[1], m_color[2]);
+				var obj:SceneObjectRenderable;
+				for(var i:uint=0; i < _avatar.children.length; i++){
+					obj = _avatar.children[i];
+					MaterialYogurtistanAvatar(obj.material).specColor = new Color(m_color[0], m_color[1], m_color[2]);;
+				}
+		
 			});
-			colorChooserMat.usePopup = true;
-			colorChooserMat.useHandCursor = true;
+			specChooserMat.usePopup = true;
+			specChooserMat.useHandCursor = true;
 			
-			lab  = new Label(materialWindow, 5,  80, "kSpec:");
 			
-			kSpecSlider = new HSlider(materialWindow, lab.x+ lab.width + 5, lab.y, function():void{
-				
-				MaterialYogurtistanAvatar(_avatar.material).kSpec = kSpecSlider.value;
-				trace("Kspec:",kSpecSlider.value);
+			
+			lab  = new Label(materialWindow, 5,  305, "EMMISIVE");
+			
+			// specularMap
+			var emMap:CheckBox = new CheckBox(materialWindow, 5, 320, "Emmisive", function():void{
+				var obj:SceneObjectRenderable;
+				if(emMap.selected){
+					for(var i:uint=0; i < _avatar.children.length; i++){
+						obj = _avatar.children[i];
+						MaterialYogurtistanAvatar(obj.material).emmisiveMask = m_rMan.getTexture("SpecularMap");
+					}
+				}else{
+					for(i=0; i < _avatar.children.length; i++){
+						obj = _avatar.children[i];
+						MaterialYogurtistanAvatar(obj.material).emmisiveMask = null;
+					}
+		
+				}
 			});
+		
+
 			
-			kSpecSlider.minimum = 0;
-			kSpecSlider.maximum = 500;
-			kSpecSlider.value = MaterialYogurtistanAvatar(_avatar.material).kSpec;
-			kSpecSlider.tick = 0.001;
+			animations = new ComboBox(materialWindow, 5 , 340);
+			animations.addItem("IDLE");
+			animations.addItem("WALK");
+			animations.addItem("RUN");
+			animations.selectedItem = "IDLE";
 			
-			lab  = new Label(materialWindow, 5,  105, "fSpecPow:");
-			fSpecPowerSlider = new HSlider(materialWindow, lab.x+ lab.width + 5, lab.y, function():void{
-				
-				MaterialYogurtistanAvatar(_avatar.material).fspecPower = fSpecPowerSlider.value;
+			animations.addEventListener(Event.SELECT, function():void{
+				var obj:SceneObjectRenderable;
+				for(var i:uint=0; i < _avatar.children.length; i++){
+					obj = _avatar.children[i] as SceneObjectRenderable;
+					SkinController(SkeletalAnimatedMesh(obj.geometry).controller).playAnimation(animations.selectedItem as String);
+				}
 			});
-			
-			fSpecPowerSlider.minimum = 0;
-			fSpecPowerSlider.maximum = 5;
-			fSpecPowerSlider.value = MaterialYogurtistanAvatar(_avatar.material).fspecPower;
-			fSpecPowerSlider.tick = 0.1;
-			
-			lab  = new Label(materialWindow, 5,  130, "kRim:");
-			
-			kRimSlider = new HSlider(materialWindow, lab.x+ lab.width + 5, lab.y, function():void{
-				MaterialYogurtistanAvatar(_avatar.material).kRim = kRimSlider.value;
-			});
-			
-			kRimSlider.minimum = 0;
-			kRimSlider.maximum = 50;
-			kRimSlider.value = MaterialYogurtistanAvatar(_avatar.material).kRim;
-			kRimSlider.tick = 0.1;
-			
-			lab  = new Label(materialWindow, 5,  155, "fRimPow:");
-			
-			fRimPowerSlider = new HSlider(materialWindow, lab.x+ lab.width + 5, lab.y, function():void{
-				
-				MaterialYogurtistanAvatar(_avatar.material).fRimPower = fRimPowerSlider.value;
-			});
-			
-			fRimPowerSlider.minimum = 0;
-			fRimPowerSlider.maximum = 5;
-			fRimPowerSlider.value = MaterialYogurtistanAvatar(_avatar.material).fRimPower;
-			fRimPowerSlider.tick = 0.1;
-			
-			lab  = new Label(materialWindow, 5,  180, "kr:");
-			krSlider = new HSlider(materialWindow, lab.x+ lab.width + 5, lab.y, function():void{
-				
-				MaterialYogurtistanAvatar(_avatar.material).krColor = krSlider.value;
-			});
-			krSlider.minimum = 0;
-			krSlider.maximum = 1;
-			krSlider.value = MaterialYogurtistanAvatar(_avatar.material).krColor;
-			krSlider.tick = 0.1;
-			
-			lab  = new Label(materialWindow, 5,  205, "ks:");
-			ksSlider = new HSlider(materialWindow, lab.x+ lab.width + 5, lab.y, function():void{
-				MaterialYogurtistanAvatar(_avatar.material).ksColor = ksSlider.value;
-			});
-			ksSlider.minimum = 0;
-			ksSlider.maximum = 1;
-			ksSlider.value = MaterialYogurtistanAvatar(_avatar.material).ksColor;
-			ksSlider.tick = 0.1;
 
 		}
 
@@ -1221,6 +1391,7 @@ package managers
 			
 			d4 = new ColorChooser( materialWindow, 100, 95, 0x6A6B77, function():void{
 				m_difcolors[3] = d4.value;	
+				drawDiffuseGradient();
 				drawCombinedGradient();
 			});
 			d4.usePopup = true;

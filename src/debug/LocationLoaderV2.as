@@ -1,17 +1,23 @@
 package debug
 {
+	import com.yogurt3d.core.animation.controllers.SkinController;
+	import com.yogurt3d.core.geoms.SkeletalAnimatedMesh;
 	import com.yogurt3d.core.sceneobjects.SceneObjectContainer;
 	import com.yogurt3d.core.sceneobjects.SceneObjectRenderable;
+	import com.yogurt3d.core.sceneobjects.event.MouseEvent3D;
 	import com.yogurt3d.core.setup.SetupBase;
 	import com.yogurt3d.core.texture.CubeTextureMap;
 	import com.yogurt3d.core.texture.TextureMap;
+	import com.yogurt3d.core.utils.Color;
 	import com.yogurt3d.core.utils.TextureMapDefaults;
 	import com.yogurt3d.io.loaders.DataLoader;
 	import com.yogurt3d.io.loaders.DisplayObjectLoader;
 	import com.yogurt3d.io.managers.loadmanagers.LoadManager;
 	import com.yogurt3d.io.parsers.TextureMap_Parser;
 	import com.yogurt3d.io.parsers.Y3D_Parser;
+	import com.yogurt3d.io.parsers.YOA_Parser;
 	import com.yogurt3d.presets.material.MaterialFill;
+	import com.yogurt3d.presets.material.yogurtistan.MaterialYogurtistanAvatar;
 	import com.yogurt3d.presets.material.yogurtistanv2.MaterialYogurtistanLocationV2;
 	import com.yogurt3d.presets.sceneobjects.GeodesicSphereSceneObject;
 	
@@ -35,6 +41,7 @@ package debug
 		private var _path						:String = "../resources/Kagithane/";
 		public var curLocation					:Location;
 		public var images						:Dictionary;
+		private var m_avatarRS					:Dictionary;
 		
 		public function LocationLoaderV2(_setup:SetupBase)
 		{
@@ -43,20 +50,34 @@ package debug
 			sceneObjs = new Dictionary;
 			images = new Dictionary;
 			curLocation = new Luxuria;
-			
-		//	images["colorGradient"] = "../resources/gradient.png";
+		
 			images["noise"] = "../resources/noise_tex6.jpg";
 			images["noise2"] = "../resources/Noise2D_std.png";
 			images["mask"] = "../resources/binoculars_mask.jpg";
-			
 			
 			images["SMap"] = "../resources/defaults/gloss_map.jpg";
 			images["SMask"] = "../resources/defaults/SMap.jpg";
 			images["EMask"] = "../resources/defaults/Emmisive.jpg";
 			
-			// "SMap"
-			//SMask
-			//EMask
+			images["FemaleBody"] = "../resources/avatar/FEMALE/Govde.png";
+			images["FemaleSurat"] = "../resources/avatar/FEMALE/Surat_yeni.png";
+			images["FemaleSac"] = "../resources/avatar/FEMALE/sac_001_yeni_01.png";
+			
+			images["SpecularMap"] = "../resources/ozerTest/CheckerBoard.jpg";
+			images["SpecularFaceMap"] = "../resources/avatar/FEMALE/Surat_speculari.png";
+			images["SpecularSac"] = "../resources/avatar/FEMALE/sacSpecular.png";
+			
+			m_avatarRS = new Dictionary;
+			
+			for(var i:uint= 1; i < 45; i++){
+				if(i < 10)
+					m_avatarRS[i-1] = "../resources/avatar/FEMALE/F_H_00"+i+"_Body.y3d";
+				else
+					m_avatarRS[i-1] = "../resources/avatar/FEMALE/F_H_0"+i+"_Body.y3d";
+			}
+			m_avatarRS[44] = "../resources/avatar/FEMALE/F_H_Face.y3d";
+			m_avatarRS[45] = "../resources/avatar/FEMALE/F_H_Scalp.y3d";
+			m_avatarRS[46] = "../resources/avatar/FEMALE/F_H_Sac_001.y3d";
 			
 		}
 		
@@ -125,6 +146,17 @@ package debug
 		public function loadResources():void{
 			
 			m_loader = new LoadManager();
+			
+			for(key in m_avatarRS){
+				m_loader.add(m_avatarRS[key], DataLoader, Y3D_Parser, {dataFormat: URLLoaderDataFormat.BINARY}  );
+			}
+			//			m_loader.add(m_alphaliPath, DataLoader, Y3D_Parser, {dataFormat: URLLoaderDataFormat.BINARY}  );
+			//		//	m_loader.add(m_manPath, DataLoader, Y3D_Parser, {dataFormat: URLLoaderDataFormat.BINARY}  );
+			m_loader.add( "../resources/avatar/animation/f_run_001.yoa", DataLoader, YOA_Parser, {dataFormat: URLLoaderDataFormat.BINARY} );
+			m_loader.add( "../resources/avatar/animation/f_idle_001.yoa", DataLoader, YOA_Parser, {dataFormat: URLLoaderDataFormat.BINARY} );
+			m_loader.add( "../resources/avatar/animation/f_sitting_001.yoa", DataLoader, YOA_Parser, {dataFormat: URLLoaderDataFormat.BINARY} );
+			m_loader.add( "../resources/avatar/animation/f_walk_001.yoa", DataLoader, YOA_Parser, {dataFormat: URLLoaderDataFormat.BINARY} );
+
 			
 			for (var key:Object in curLocation.models) {
 				trace("Loading model : "+curLocation.models[key]);
@@ -214,7 +246,7 @@ package debug
 					sceneObjs[key] = new SceneObjectRenderable;
 					
 					sceneObjs[key].geometry = m_loader.getLoadedContent(curLocation.models[key]);
-					sceneObjs[key].material = new MaterialYogurtistanLocationV2(UIManagerV2.GRADIENT);
+					sceneObjs[key].material = new MaterialYogurtistanLocationV2(UIManagerV2.DIFFUSE_GRADIENT,UIManagerV2.AMB_UP, UIManagerV2.AMB_DOWN);
 					sceneObjs[key].interactive = true;
 					sceneObjs[key].pickEnabled = true;
 					
@@ -254,7 +286,7 @@ package debug
 					sceneObjs[obj.key].interactive = true;
 					sceneObjs[obj.key].pickEnabled = true;
 					sceneObjs[obj.key].geometry = m_loader.getLoadedContent(obj.path);
-					sceneObjs[obj.key].material = new MaterialYogurtistanLocationV2(UIManagerV2.GRADIENT);
+					sceneObjs[obj.key].material = new MaterialYogurtistanLocationV2(UIManagerV2.DIFFUSE_GRADIENT, UIManagerV2.AMB_UP, UIManagerV2.AMB_DOWN);
 					trace("Scene Object Created: ", obj.key, TestSetup(m_setup).scene.getRenderableSet().getRenderableCount(), sceneObjs[obj.key].pickEnabled);
 					
 					if(curLocation.textures[obj.key])
@@ -271,6 +303,55 @@ package debug
 			}	
 
 			return cont;
+		}
+		
+		public function getMap(_key:String):TextureMap{
+			
+			return m_loader.getLoadedContent(images[_key]);
+		}
+		public var m_avatar:SceneObjectContainer = null;
+		
+		public override function get avatar():SceneObjectContainer{
+			if(m_avatar == null)
+				createAvatar();
+			return m_avatar;
+		}
+		private function onObjSelected(event:MouseEvent3D):void{
+			
+			trace((event.currentTarget3d as SceneObjectRenderable).systemID, "is double clicked");
+			
+		}
+		
+		public function createAvatar():SceneObjectContainer{
+			m_avatar = new SceneObjectContainer;
+			
+			var obj:SceneObjectRenderable;
+			for(var key:Object in m_avatarRS){
+				obj = new SceneObjectRenderable;
+				obj.geometry = m_loader.getLoadedContent(m_avatarRS[key]);
+	//			obj.material = new MaterialFill(0xFFFFFF);
+				if(key == 46)
+					obj.material = new MaterialYogurtistanAvatar(UIManagerV2.GRADIENT_AVATAR,  null, getMap("FemaleSac"));
+				else if(key != 44 && key != 45)
+					obj.material = new MaterialYogurtistanAvatar(UIManagerV2.GRADIENT_AVATAR,  null, getMap("FemaleBody"));
+				else
+					obj.material = new MaterialYogurtistanAvatar(UIManagerV2.GRADIENT_AVATAR,  null, getMap("FemaleSurat"));
+				obj.interactive = true;
+				obj.pickEnabled = true;
+				obj.onMouseDoubleClick.add(onObjSelected);
+				
+				m_avatar.addChild(obj);
+				
+				SkinController(SkeletalAnimatedMesh(obj.geometry).controller).addAnimation("RUN", m_loader.getLoadedContent( "../resources/avatar/animation/f_run_001.yoa"));
+				SkinController(SkeletalAnimatedMesh(obj.geometry).controller).addAnimation("IDLE", m_loader.getLoadedContent( "../resources/avatar/animation/f_idle_001.yoa"));
+				SkinController(SkeletalAnimatedMesh(obj.geometry).controller).addAnimation("SITTING", m_loader.getLoadedContent( "../resources/avatar/animation/f_sitting_001.yoa"));
+				SkinController(SkeletalAnimatedMesh(obj.geometry).controller).addAnimation("WALK", m_loader.getLoadedContent( "../resources/avatar/animation/f_walk_001.yoa"));
+				
+				SkinController(SkeletalAnimatedMesh(obj.geometry).controller).playAnimation("IDLE");
+				
+			}
+			
+			return m_avatar;
 		}
 		
 		public function get loader():LoadManager

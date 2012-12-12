@@ -2,6 +2,7 @@ package debug
 {
 	import com.yogurt3d.core.lights.ELightType;
 	import com.yogurt3d.core.lights.RenderableLight;
+	import com.yogurt3d.core.sceneobjects.SceneObjectContainer;
 	import com.yogurt3d.core.utils.Color;
 	import com.yogurt3d.debug.stats.Stats;
 	import com.yogurt3d.io.managers.loadmanagers.LoadManager;
@@ -14,6 +15,8 @@ package debug
 	import managers.LocationLoaderNight;
 	
 	import setup.TestSetup;
+	
+	import skybox.NightSkyBox;
 	
 	[SWF(width="1200", height="700", frameRate="60")]
 	public class LocationTest extends Sprite
@@ -54,8 +57,14 @@ package debug
 			
 			loader.addEventListener( LoaderEvent.ALL_COMPLETE, function( _e:LoaderEvent ):void
 			{
+				var m_avatar:SceneObjectContainer;
+		//		TestSetup(setup).scene.skyBox = new NightSkyBox;
+				TestSetup(setup).scene.addChild(m_avatar = rMan.avatar);
 				TestSetup(setup).scene.addChild(rMan.createContainer);
+			
 				
+				TestSetup(setup).viewport.pickingEnabled = true;
+				//TestSetup(setup).scene.
 				light1 = new RenderableLight(ELightType.DIRECTIONAL, Color.WHITE, 1);
 				light1.transformation.x = 0;
 				light1.transformation.y = 150;
@@ -69,8 +78,10 @@ package debug
 				uiMan.loadLocationUI(0,0);
 				uiMan.createLightUI(light1, 0, 50);	
 				uiMan.createLocationUINight(975, 0);
-		//		uiMan.createPostEffectUI( 0, 220, 0, 245);
-				uiMan.createGradient(0, 500);
+//		//		uiMan.createPostEffectUI( 0, 220, 0, 245);
+				uiMan.createLocGradientUI(0, 500);
+				uiMan.createGradientAvatar(0, 500);
+				uiMan.createAvatarUI(1000, 0 , m_avatar);
 			});
 			
 			loader.start();

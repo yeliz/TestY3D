@@ -11,8 +11,11 @@ package debug
 	import com.bit101.components.PushButton;
 	import com.bit101.components.Style;
 	import com.bit101.components.Window;
+	import com.yogurt3d.core.animation.controllers.SkinController;
+	import com.yogurt3d.core.geoms.SkeletalAnimatedMesh;
 	import com.yogurt3d.core.lights.Light;
 	import com.yogurt3d.core.render.post.PostProcessingEffectBase;
+	import com.yogurt3d.core.sceneobjects.SceneObjectContainer;
 	import com.yogurt3d.core.sceneobjects.SceneObjectRenderable;
 	import com.yogurt3d.core.sceneobjects.event.MouseEvent3D;
 	import com.yogurt3d.core.texture.TextureMap;
@@ -42,6 +45,7 @@ package debug
 	import com.yogurt3d.presets.effects.EffectSwirl;
 	import com.yogurt3d.presets.effects.EffectThermalVision;
 	import com.yogurt3d.presets.effects.EffectVibrance;
+	import com.yogurt3d.presets.material.yogurtistan.MaterialYogurtistanAvatar;
 	import com.yogurt3d.presets.material.yogurtistanv2.MaterialYogurtistanLocationV2;
 	
 	import flash.display.BitmapData;
@@ -128,7 +132,7 @@ package debug
 				(m_rMan as LocationLoaderV2).loader.addEventListener( LoaderEvent.ALL_COMPLETE, function( _e:LoaderEvent ):void
 				{
 					TestSetup(m_setup).scene.addChild((m_rMan as LocationLoaderV2).createContainer);
-					trace((m_rMan as LocationLoaderV2).createContainer.children.length);
+				//	trace((m_rMan as LocationLoaderV2).createContainer.children.length);
 					m_IdName = new Dictionary;
 			
 					var obj:SceneObjectRenderable;
@@ -173,12 +177,10 @@ package debug
 		private var fresnelPower:HSlider;
 		private var reflectance:HSlider;
 		private var specChooserMat:ColorChooser;
-		
 		private var opLabel:Label;
 		private var refLabel:Label;
 		private var powLabel:Label;
 		private var freRefLabel:Label;
-	//	private var kspLabel:Label;
 		private var ksColorLabel:Label;
 		private var emmLabel:Label;
 		private var krLabel:Label;
@@ -194,46 +196,47 @@ package debug
 		private var lMap:CheckBox;
 		private var refMapsC:ComboBox;
 		private var m_saveToXML:PushButton;
+		private var allMAterial:Window;
 		
 		public function createLocationUINight(_posX:Number=0, _posY:Number=0):void{
 			Style.setStyle( Style.DARK);
 			
-			var materialWindow:Window = new Window(m_parent, _posX, _posY, "Material");
-			materialWindow.width = 220;
-			materialWindow.height = 600;
-//			
-//			// OPACITY
-			var panel1:Panel = new Panel(materialWindow, 5, 5);
+			allMAterial = new Window(m_parent, _posX, _posY, "Material");
+			allMAterial.width = 220;
+			allMAterial.height = 600;
+			allMAterial.enabled = false;
+			
+			// OPACITY
+			var panel1:Panel = new Panel(allMAterial, 5, 5);
 			panel1.width = 210;
 			panel1.height = 20;
 			panel1.color = 0x555555;
 			var lab:Label  = new Label(panel1, 5,  0, "Opacity:");
-//			
+			
 			opacitySlider = new HSlider(panel1, lab.x+ lab.width + 8, lab.y + 4, function():void{
 				MaterialYogurtistanLocationV2(m_selectedObj.material).opacity = opacitySlider.value;
 				opLabel.text = ""+opacitySlider.value;
 			});
-//			
+			
 			opacitySlider.minimum = 0;
 			opacitySlider.maximum = 1;
-	//		opacitySlider.value = MaterialYogurtistanLocationV2(m_selectedObj.material).opacity ;
 			opacitySlider.tick = 0.1;
 			opLabel  = new Label(panel1, opacitySlider.x+ opacitySlider.width + 8,  lab.y,""+opacitySlider.value);
-//			
-//			// REFLECTION
-//			
-			var panel2:Panel = new Panel(materialWindow, 5, 30);
+			
+			// REFLECTION
+			
+			var panel2:Panel = new Panel(allMAterial, 5, 30);
 			panel2.width = 210;
 			panel2.height = 110;
 			panel2.color = 0x555555;
-//			
+			
 			lab  = new Label(panel2, 5,  0, "REFLECTION");
 			refMapsC = new ComboBox(panel2, 5, 20, "None");
 			refMapsC.addItem("None");
 			refMapsC.addItem("Night");
 			refMapsC.addItem("Vasa");
 			refMapsC.addItem("Outside");
-//			
+			
 			refMapsC.addEventListener(Event.SELECT, function():void{
 				if(refMapsC.selectedItem == "None")
 					MaterialYogurtistanLocationV2(m_selectedObj.material).reflectionMap = null;
@@ -245,7 +248,7 @@ package debug
 					MaterialYogurtistanLocationV2(m_selectedObj.material).reflectionMap = outside.texture;
 				}
 			});
-//			
+			
 			lab  = new Label(panel2, 5,  45, "RefAlpha:");
 			
 			refAlphaSlider = new HSlider(panel2, lab.x+ lab.width + 8, lab.y + 4, function():void{
@@ -255,10 +258,9 @@ package debug
 			
 			refAlphaSlider.minimum = 0;
 			refAlphaSlider.maximum = 1;
-	//		refAlphaSlider.value = MaterialYogurtistanLocationV2(m_selectedObj.material).reflectionAlpha;
 			refAlphaSlider.tick = 0.1;
 			refLabel = new Label(panel2, refAlphaSlider.x+ refAlphaSlider.width + 8,  lab.y,""+refAlphaSlider.value);
-//			
+			
 			lab  = new Label(panel2, 5,  65, "FresPower:");
 			fresnelPower = new HSlider(panel2, lab.x+ lab.width + 5, lab.y + 4, function():void{
 				MaterialYogurtistanLocationV2(m_selectedObj.material).fresnelPower = fresnelPower.value;
@@ -267,9 +269,8 @@ package debug
 			fresnelPower.minimum = 0;
 			fresnelPower.maximum = 10;
 			fresnelPower.tick = 1;
-	//		fresnelPower.value = MaterialYogurtistanLocationV2(m_selectedObj.material).fresnelPower;
 			powLabel = new Label(panel2, fresnelPower.x+ fresnelPower.width + 8,  lab.y,""+fresnelPower.value);
-//			
+			
 			lab  = new Label(panel2, 5,  85, "FresRef:");
 			
 			reflectance = new HSlider(panel2, lab.x+ lab.width + 5, lab.y + 4, function():void{
@@ -278,12 +279,11 @@ package debug
 			});
 			reflectance.minimum = 0;
 			reflectance.maximum = 100;
-		//	reflectance.value = MaterialYogurtistanLocationV2(m_selectedObj.material).fresnelReflectance*100;
 			reflectance.tick = 0.1;
 			freRefLabel  = new Label(panel2, reflectance.x+ reflectance.width + 8,  lab.y,""+(reflectance.value/100));
-//			
-//			// COLOR
-			var panel3:Panel = new Panel(materialWindow, 5, 150);
+			
+			// COLOR
+			var panel3:Panel = new Panel(allMAterial, 5, 150);
 			panel3.width = 210;
 			panel3.height = 45;
 			panel3.color = 0x555555;
@@ -296,8 +296,8 @@ package debug
 					MaterialYogurtistanLocationV2(m_selectedObj.material).colorMap = null;
 			});
 		
-//			// SPECULAR MAP
-			var panel4:Panel = new Panel(materialWindow, 5, 200);
+			// SPECULAR MAP
+			var panel4:Panel = new Panel(allMAterial, 5, 200);
 			panel4.width = 210;
 			panel4.height = 60;
 			panel4.color = 0x555555;
@@ -307,34 +307,18 @@ package debug
 			
 			kSpecSlider = new NumericStepper(panel4, lab.x+ lab.width + 5, lab.y + 4, function():void{
 				MaterialYogurtistanLocationV2(m_selectedObj.material).shineness = kSpecSlider.value;
-				//kspLabel.text = ""+kSpecSlider.value;
 			});
 			
 			kSpecSlider.minimum = 0;
 			kSpecSlider.maximum = 200;
 			kSpecSlider.step = 0.1;
-		//	kSpecSlider.value = MaterialYogurtistanLocationV2(m_selectedObj.material).shineness;
-			//kspLabel = new Label(panel4, kSpecSlider.x+ kSpecSlider.width + 8,  lab.y,""+kSpecSlider.value);
-//			
-//			sMap = new CheckBox(panel4, 5, 43, "Specular Map", function():void{
-//				
-//				if(sMap.selected && m_rMan.specMaps[objects.selectedItem])
-//					MaterialYogurtistanLocationNight(m_selectedObj.material).specularMap = m_rMan.getSpecularMap(objects.selectedItem as String);
-//				else if(sMap.selected)
-//					MaterialYogurtistanLocationNight(m_selectedObj.material).specularMap = m_rMan.getUsualTextures("SMap");
-//				else
-//					MaterialYogurtistanLocationNight(m_selectedObj.material).specularMap = new TextureMap(new BitmapData(1, 1, false, 0x000000));
-//				
-//				kSpecSlider.value = MaterialYogurtistanLocationNight(m_selectedObj.material).kSpec;
-//				kspLabel.text = ""+kSpecSlider.value;
-//			});
-//			
-//			// SPECULAR MASK
-			var panel5:Panel = new Panel(materialWindow, 5, 270);
+	
+			// SPECULAR MASK
+			var panel5:Panel = new Panel(allMAterial, 5, 270);
 			panel5.width = 210;
 			panel5.height = 63;
 			panel5.color = 0x555555;
-//			
+			
 			lab  = new Label(panel5, 5,  0, "SPECULAR");
 			lab  = new Label(panel5, 5,  20, "specular:");
 			ksSlider = new HSlider(panel5, lab.x+ lab.width + 5, lab.y + 4, function():void{
@@ -343,10 +327,9 @@ package debug
 			});
 			ksSlider.minimum = 0;
 			ksSlider.maximum = 1;
-		//	ksSlider.value = MaterialYogurtistanLocationV2(m_selectedObj.material).specular;
 			ksSlider.tick = 0.1;
 			ksColorLabel = new Label(panel5, ksSlider.x+ ksSlider.width + 8,  lab.y,""+ksSlider.value);
-//			
+		
 			sMask = new CheckBox(panel5, 5, 40, "Specular Map", function():void{
 				if(sMask.selected && m_rMan.specMasks[objects.selectedItem])
 					MaterialYogurtistanLocationV2(m_selectedObj.material).specularMap = m_rMan.getSpecularMask(objects.selectedItem as String);
@@ -356,10 +339,8 @@ package debug
 				ksSlider.value = MaterialYogurtistanLocationV2(m_selectedObj.material).specular;
 				ksColorLabel.text = ""+ksSlider.value;
 			});
-		//	sMask.selected = !(MaterialYogurtistanLocationV2(m_selectedObj.material).specularMap == TextureMapDefaults.BLACKMIPMAP);
 			
-//			
-			lab  = new Label(materialWindow, sMask.width+20,  310, "SColor");
+			lab  = new Label(allMAterial, sMask.width+20,  310, "SColor");
 			specChooserMat = new ColorChooser( panel5, sMask.width+50, 40, 0xFFFFFF, function():void{
 				
 				var color:uint = specChooserMat.value;
@@ -372,63 +353,42 @@ package debug
 			});
 			specChooserMat.usePopup = true;
 			specChooserMat.useHandCursor = true;
-//			
-//			// EMMISIVE
-			var panel6:Panel = new Panel(materialWindow, 5, 340);
+			
+			// EMMISIVE
+			var panel6:Panel = new Panel(allMAterial, 5, 340);
 			panel6.width = 210;
 			panel6.height = 63;
 			panel6.color = 0x555555;
-//			
-			lab  = new Label(panel6, 5, 0, "EMMISIVE & LIGHT MAP");
-//			
-//			eMap = new CheckBox(panel6, 5, 20, "Emmsve Mask", function():void{
-//				
-//				if(eMap.selected && m_rMan.emmisiveMaps[objects.selectedItem])
-//					MaterialYogurtistanLocationNight(m_selectedObj.material).emmisiveMask = m_rMan.getEmmisiveMask(objects.selectedItem as String);
-//				else if(eMap.selected)
-//					MaterialYogurtistanLocationNight(m_selectedObj.material).emmisiveMask = m_rMan.getUsualTextures("EMask");
-//				else
-//					MaterialYogurtistanLocationNight(m_selectedObj.material).emmisiveMask = new TextureMap(new BitmapData(1, 1, false, 0x000000));
-//				
-//				//				if(eMap.selected)
-//				//					MaterialYogurtistanLocationNight(m_selectedObj.material).emmisiveMask = m_rMan.getUsualTextures("EMask");
-//				//				else
-//				//					MaterialYogurtistanLocationNight(m_selectedObj.material).emmisiveMask = null;				
-//			});
-//			
+			
+			lab  = new Label(panel6, 5, 0, "EMMISIVE & LIGHT MAP");		
 			lab  = new Label(panel6, 5,  35, "Emm Alpha:");
-//			
+			
 			emmisiveAlpha = new HSlider(panel6, lab.x+ lab.width + 5, lab.y + 4, function():void{
 				MaterialYogurtistanLocationV2(m_selectedObj.material).emmisiveAlpha = emmisiveAlpha.value;
 				emmLabel.text = ""+emmisiveAlpha.value;
 			});
 			emmisiveAlpha.minimum = 0;
 			emmisiveAlpha.maximum = 2;
-	//		emmisiveAlpha.value = MaterialYogurtistanLocationV2(m_selectedObj.material).emmisiveAlpha;
 			emmisiveAlpha.tick = 0.1;
 			emmLabel = new Label(panel6, emmisiveAlpha.x+ emmisiveAlpha.width + 8,  lab.y,""+emmisiveAlpha.value);
-//			
-//			// OTHER
-			var panel7:Panel = new Panel(materialWindow, 5, 410);
+			
+			// OTHER
+			var panel7:Panel = new Panel(allMAterial, 5, 410);
 			panel7.width = 210;
 			panel7.height = 130;
 			panel7.color = 0x555555;
 			lab  = new Label(panel7, 5, 0, "OTHER");
-			
-			
-			
+					
 			lab  = new Label(panel7, 5,  20, "blendCnst:");
 			blendSlider = new HSlider(panel7, lab.x+ lab.width + 5, lab.y+4, function():void{
 				MaterialYogurtistanLocationV2(m_selectedObj.material).blendConstant = blendSlider.value;
 				blendLabel.text = ""+blendSlider.value;
 			});
 			blendSlider.minimum = 0;
-			blendSlider.maximum = 2;
-	//		blendSlider.value = MaterialYogurtistanLocationV2(m_selectedObj.material).blendConstant;
+			blendSlider.maximum = 10;
 			blendSlider.tick = 0.1;
 			blendLabel = new Label(panel7, blendSlider.x+ blendSlider.width + 8,  lab.y,""+blendSlider.value);
-			
-			
+				
 			lMap = new CheckBox(panel6, 5, 20, "LightMap", function():void{
 							
 				if(lMap.selected && m_rMan.lightMaps[objects.selectedItem])
@@ -437,8 +397,7 @@ package debug
 					MaterialYogurtistanLocationV2(m_selectedObj.material).lightMap = null;
 							
 			});
-//			
-//			m_saveToXML = new PushButton(materialWindow, 5, 550, "SAVE", onSaveXML);
+
 		}
 		
 		private var objects:ComboBox;
@@ -446,7 +405,7 @@ package debug
 		private var m_selectedObj:SceneObjectRenderable;
 		
 		private function onObjSelected(event:MouseEvent3D):void{
-		
+			
 			var key:String = m_IdName[(event.currentTarget3d as SceneObjectRenderable).systemID];
 		//	trace(key + " is selected");
 			if(key){
@@ -456,6 +415,310 @@ package debug
 				objects.selectedItem = key;
 				objects.dispatchEvent(event);			
 			}
+			allMAterial.visible = true;
+			locGradient.visible = true;
+			avatarGradient.visible = false;
+			m_avatarUI.visible = false;
+		}
+		
+		private function onAvatarSelected(event:MouseEvent3D):void{
+			
+			var _event:Event = new Event(Event.SELECT);
+			objects.selectedItem = "AVATAR";
+			objects.dispatchEvent(event);
+//			
+//			allMAterial.visible = false;
+//			locGradient.visible = false;
+//			avatarGradient.visible = true;
+//			m_avatarUI.visible = true;
+		}
+		
+		/*******************************************************************************************************
+		 * 
+		 * AVATAR MATERIAL
+		 * 
+		 * *****************************************************************************************************/
+		private var m_avatarUI:Window;
+		public function createAvatarUI(_posX:Number=0, _posY:Number=0, _avatar:SceneObjectContainer=null):void{
+			
+			var opacitySlider:HSlider;
+			var blendSlider:HSlider;
+			var opLabel:Label;
+			var blendLabel:Label;
+			var freRefLabel:Label;
+			var animations:ComboBox;
+			
+			m_avatarUI = new Window(m_parent, _posX, _posY, "Material");
+			m_avatarUI.width = 200;
+			m_avatarUI.height = 400;
+			m_avatarUI.visible = false;
+			
+			var lab:Label  = new Label(m_avatarUI, 5,  5, "Opacity:");
+			
+			opacitySlider = new HSlider(m_avatarUI, lab.x+ lab.width + 5, lab.y + 4, function():void{
+				
+				var obj:SceneObjectRenderable;
+				for(var i:uint=0; i < _avatar.children.length; i++){
+					obj = _avatar.children[i];
+					MaterialYogurtistanAvatar(obj.material).opacity = opacitySlider.value;	
+				}
+				opLabel.text = ""+opacitySlider.value;
+			});
+			
+			opacitySlider.minimum = 0;
+			opacitySlider.maximum = 1;
+			opacitySlider.value = MaterialYogurtistanAvatar((_avatar.children[0] as SceneObjectRenderable).material).opacity ;
+			opacitySlider.tick = 0.1;
+			
+			opLabel  = new Label(m_avatarUI, opacitySlider.x+ opacitySlider.width + 8,  lab.y,""+opacitySlider.value);
+			
+			lab  = new Label(m_avatarUI, 5,  30, "Blend const:");
+			
+			blendSlider = new HSlider(m_avatarUI, lab.x+ lab.width + 5, lab.y + 4, function():void{	
+				var obj:SceneObjectRenderable;
+				for(var i:uint=0; i < _avatar.children.length; i++){
+					obj = _avatar.children[i];
+					MaterialYogurtistanAvatar(obj.material).blendConstant = blendSlider.value;
+				}
+				blendLabel.text = ""+blendSlider.value;
+			});
+			
+			blendSlider.minimum = 0;
+			blendSlider.maximum = 10;
+			blendSlider.value = MaterialYogurtistanAvatar((_avatar.children[0] as SceneObjectRenderable).material).blendConstant;
+			blendSlider.tick = 0.1;
+			
+			blendLabel  = new Label(m_avatarUI, blendSlider.x+ blendSlider.width + 8,  lab.y,""+blendSlider.value);
+			//			
+			
+			cMap = new CheckBox(m_avatarUI, 5, 55, "Color Map", function():void{
+				var obj:SceneObjectRenderable;
+				if(cMap.selected){
+					for(var i:uint=0; i < _avatar.children.length; i++){
+						obj = _avatar.children[i];
+						if(i == 46)
+							MaterialYogurtistanAvatar(obj.material).colorMap = m_rMan.getUsualTextures("FemaleSac");
+						else if(i != 44 && i != 45)
+							MaterialYogurtistanAvatar(obj.material).colorMap = m_rMan.getUsualTextures("FemaleBody");
+						else
+							MaterialYogurtistanAvatar(obj.material).colorMap = m_rMan.getUsualTextures("FemaleSurat");
+					}
+					
+				}else{
+					
+					for(i=0; i < _avatar.children.length; i++){
+						obj = _avatar.children[i];
+						MaterialYogurtistanAvatar(obj.material).colorMap = null;
+					}
+				}
+				
+			});
+			
+			cMap.selected = !(MaterialYogurtistanAvatar((_avatar.children[0] as SceneObjectRenderable).material).colorMap == TextureMapDefaults.WHITEMIPMAP);
+			
+			lab  = new Label(m_avatarUI, 5,  70, "FRESNEL");
+			
+			lab  = new Label(m_avatarUI, 5,  85, "fSpecPow:");
+			fSpecPowerSlider = new HSlider(m_avatarUI, lab.x+ lab.width + 5, lab.y, function():void{
+				var obj:SceneObjectRenderable;
+				for(var i:uint=0; i < _avatar.children.length; i++){
+					obj = _avatar.children[i];
+					MaterialYogurtistanAvatar(obj.material).fspecPower = fSpecPowerSlider.value;
+				}
+				freRefLabel.text = ""+(fSpecPowerSlider.value);
+			});
+			
+			fSpecPowerSlider.minimum = 0;
+			fSpecPowerSlider.maximum = 5;
+			fSpecPowerSlider.value = MaterialYogurtistanAvatar((_avatar.children[0] as SceneObjectRenderable).material).fspecPower;
+			fSpecPowerSlider.tick = 0.1;
+			
+			freRefLabel  = new Label(m_avatarUI, fSpecPowerSlider.x+ fSpecPowerSlider.width + 8,  lab.y,""+(fSpecPowerSlider.value));
+			
+			lab  = new Label(m_avatarUI, 5,  105, "fRimPow:");
+			
+			fRimPowerSlider = new HSlider(m_avatarUI, lab.x+ lab.width + 5, lab.y, function():void{
+				
+				var obj:SceneObjectRenderable;
+				for(var i:uint=0; i < _avatar.children.length; i++){
+					obj = _avatar.children[i];
+					MaterialYogurtistanAvatar(obj.material).fRimPower = fRimPowerSlider.value;
+				}
+				freRimLabel.text = ""+(fRimPowerSlider.value);
+			});
+			
+			fRimPowerSlider.minimum = 0;
+			fRimPowerSlider.maximum = 5;
+			fRimPowerSlider.value = MaterialYogurtistanAvatar((_avatar.children[0] as SceneObjectRenderable).material).fRimPower;
+			fRimPowerSlider.tick = 0.1;
+			var freRimLabel:Label  = new Label(m_avatarUI, fRimPowerSlider.x+ fRimPowerSlider.width + 8,  lab.y,""+(fRimPowerSlider.value));
+			
+			lab  = new Label(m_avatarUI, 5,  130, "SHINE");
+			
+			lab  = new Label(m_avatarUI, 5,  145, "shinness");
+			var shineSlider:NumericStepper = new NumericStepper(m_avatarUI, lab.x+ lab.width + 5, lab.y + 4, function():void{
+				
+				var obj:SceneObjectRenderable;
+				for(var i:uint=0; i < _avatar.children.length; i++){
+					obj = _avatar.children[i];
+					MaterialYogurtistanAvatar(obj.material).shineness = shineSlider.value;
+				}
+			});
+			
+			shineSlider.minimum = 0;
+			shineSlider.maximum = 200;
+			shineSlider.value = MaterialYogurtistanAvatar((_avatar.children[0] as SceneObjectRenderable).material).shineness;
+			shineSlider.step = 0.1;
+			
+			var shineMap:CheckBox = new CheckBox(m_avatarUI, 5, 170, "Shine Mask", function():void{
+				var obj:SceneObjectRenderable;
+				if(shineMap.selected){
+					for(var i:uint=0; i < _avatar.children.length; i++){
+						obj = _avatar.children[i];
+						
+						if(i == 44)
+							MaterialYogurtistanAvatar(obj.material).shinenessMask = m_rMan.getUsualTextures("SpecularFaceMap");
+						else if(i == 46)
+							MaterialYogurtistanAvatar(obj.material).shinenessMask = m_rMan.getUsualTextures("SpecularSac");
+						else
+							MaterialYogurtistanAvatar(obj.material).shinenessMask = m_rMan.getUsualTextures("SpecularMap");
+					}
+				}else{
+					for(i=0; i < _avatar.children.length; i++){
+						obj = _avatar.children[i];
+						MaterialYogurtistanAvatar(obj.material).shinenessMask = null;
+					}
+				}
+			});
+			
+			lab  = new Label(m_avatarUI, 5,  190, "RIM");
+			lab  = new Label(m_avatarUI, 5,  205, "rim:");
+			var rimSlider:NumericStepper = new NumericStepper(m_avatarUI, lab.x+ lab.width + 5, lab.y + 4, function():void{
+				
+				var obj:SceneObjectRenderable;
+				for(var i:uint=0; i < _avatar.children.length; i++){
+					obj = _avatar.children[i];
+					MaterialYogurtistanAvatar(obj.material).rim = rimSlider.value;
+				}
+			});
+			
+			rimSlider.minimum = 0;
+			rimSlider.maximum = 1;
+			rimSlider.value = MaterialYogurtistanAvatar((_avatar.children[0] as SceneObjectRenderable).material).rim;
+			rimSlider.step = 0.1;
+			
+			lab  = new Label(m_avatarUI, 5,  225, "rimShine:");
+			var rimShineSlider:NumericStepper = new NumericStepper(m_avatarUI, lab.x+ lab.width + 5, lab.y + 4, function():void{
+				
+				var obj:SceneObjectRenderable;
+				for(var i:uint=0; i < _avatar.children.length; i++){
+					obj = _avatar.children[i];
+					MaterialYogurtistanAvatar(obj.material).rimShineness = rimShineSlider.value;
+				}
+			});
+			
+			rimShineSlider.minimum = 0;
+			rimShineSlider.maximum = 10;
+			rimShineSlider.value = MaterialYogurtistanAvatar((_avatar.children[0] as SceneObjectRenderable).material).rimShineness;
+			rimShineSlider.step = 0.1;
+			
+			lab  = new Label(m_avatarUI, 5,  250, "SPECULAR");
+			
+			// specularMap
+			var specMap:CheckBox = new CheckBox(m_avatarUI, 5, 270, "Spec Map", function():void{
+				var obj:SceneObjectRenderable;
+				if(specMap.selected){
+					for(var i:uint=0; i < _avatar.children.length; i++){
+						obj = _avatar.children[i];
+						
+						if(i == 44)
+							MaterialYogurtistanAvatar(obj.material).specularMap = m_rMan.getUsualTextures("SpecularFaceMap");
+						else if(i == 46)
+							MaterialYogurtistanAvatar(obj.material).specularMap = m_rMan.getUsualTextures("SpecularSac");
+						else
+							MaterialYogurtistanAvatar(obj.material).specularMap = m_rMan.getUsualTextures("SpecularMap");
+						
+					}
+				}else{
+					for(i=0; i < _avatar.children.length; i++){
+						obj = _avatar.children[i];
+						MaterialYogurtistanAvatar(obj.material).specularMap = null;
+						MaterialYogurtistanAvatar(obj.material).specular = 1.0;
+					}
+					
+					specularSlider.value = 1;
+				}
+			});
+			
+			lab  = new Label(m_avatarUI, 5,  290, "specular:");
+			// specular
+			var specularSlider:NumericStepper = new NumericStepper(m_avatarUI, lab.x+ lab.width + 5, lab.y + 4, function():void{
+				
+				var obj:SceneObjectRenderable;
+				for(var i:uint=0; i < _avatar.children.length; i++){
+					obj = _avatar.children[i];
+					MaterialYogurtistanAvatar(obj.material).specular = specularSlider.value;
+				}
+			});
+			
+			specularSlider.minimum = 0;
+			specularSlider.maximum = 1;
+			specularSlider.value = MaterialYogurtistanAvatar((_avatar.children[0] as SceneObjectRenderable).material).specular;
+			specularSlider.step = 0.1;
+			// specularColor
+			
+			lab  = new Label(m_avatarUI, 80,  266, "SColor");
+			var specChooserMat:ColorChooser = new ColorChooser( m_avatarUI,115, 266, 0xFFFFFF, function():void{
+				
+				var color:uint = specChooserMat.value;
+				var m_color:Vector.<Number> = new Vector.<Number>;
+				m_color[0] = (color >> 16 & 255 ) / 255;
+				m_color[1] = (color >> 8 & 255) / 255;
+				m_color[2] = (color & 255) / 255;
+				
+				var obj:SceneObjectRenderable;
+				for(var i:uint=0; i < _avatar.children.length; i++){
+					obj = _avatar.children[i];
+					MaterialYogurtistanAvatar(obj.material).specColor = new Color(m_color[0], m_color[1], m_color[2]);;
+				}
+				
+			});
+			specChooserMat.usePopup = true;
+			specChooserMat.useHandCursor = true;
+				
+			lab  = new Label(m_avatarUI, 5,  305, "EMMISIVE");
+			
+			// specularMap
+			var emMap:CheckBox = new CheckBox(m_avatarUI, 5, 320, "Emmisive", function():void{
+				var obj:SceneObjectRenderable;
+				if(emMap.selected){
+					for(var i:uint=0; i < _avatar.children.length; i++){
+						obj = _avatar.children[i];
+						MaterialYogurtistanAvatar(obj.material).emmisiveMask = m_rMan.getUsualTextures("SpecularMap");
+					}
+				}else{
+					for(i=0; i < _avatar.children.length; i++){
+						obj = _avatar.children[i];
+						MaterialYogurtistanAvatar(obj.material).emmisiveMask = null;
+					}
+					
+				}
+			});
+			
+			animations = new ComboBox(m_avatarUI, 5 , 340);
+			animations.addItem("IDLE");
+			animations.addItem("WALK");
+			animations.addItem("RUN");
+			animations.selectedItem = "IDLE";
+			
+			animations.addEventListener(Event.SELECT, function():void{
+				var obj:SceneObjectRenderable;
+				for(var i:uint=0; i < _avatar.children.length; i++){
+					obj = _avatar.children[i] as SceneObjectRenderable;
+					SkinController(SkeletalAnimatedMesh(obj.geometry).controller).playAnimation(animations.selectedItem as String);
+				}
+			});
+			
 		}
 		
 		/*******************************************************************************************************
@@ -478,25 +741,32 @@ package debug
 			
 			for (var key:Object in m_rMan.models) {
 				objects.addItem(key);
-			//	objects.selectedItem = key;
-				
 				obj = (m_rMan.sceneObjs[key] as SceneObjectRenderable);
-			//	trace(key, obj);
 				obj.onMouseDoubleClick.add(onObjSelected);
 				m_IdName[obj.systemID] = key;
-				
-			//	m_selectedObj = m_rMan.sceneObjs[key];
+	
 			}
-		//	objects.selectedItem
+			
+			var len:uint = m_rMan.avatar.children.length;
+			for(var i:uint = 0; i < len; i++){
+				m_rMan.avatar.children[i].interactive = true;
+				m_rMan.avatar.children[i].pickEnabled = true;
+				m_rMan.avatar.children[i].onMouseDoubleClick.add(onAvatarSelected);
+			}
+			
+			objects.addItem("AVATAR");
 			
 			objects.addEventListener(Event.SELECT, function():void{
 				m_selectedObj = m_rMan.sceneObjs[objects.selectedItem];
 				
-				if(m_selectedObj){
-				
+				if(m_selectedObj && m_selectedObj.material is MaterialYogurtistanLocationV2){
+					allMAterial.enabled = true;
+					allMAterial.visible = true;
+					avatarGradient.visible = false;
+					m_avatarUI.visible = false;
 					opacitySlider.value = MaterialYogurtistanLocationV2(m_selectedObj.material).opacity;
 					opLabel.text = ""+opacitySlider.value;
-//						
+						
 						if(MaterialYogurtistanLocationV2(m_selectedObj.material).reflectionMap == vasa.texture){
 							refMapsC.selectedItem = "Vasa";
 						}else if(MaterialYogurtistanLocationV2(m_selectedObj.material).reflectionMap == outside.texture){
@@ -512,22 +782,27 @@ package debug
 						powLabel.text = ""+fresnelPower.value;
 						reflectance.value = MaterialYogurtistanLocationV2(m_selectedObj.material).fresnelReflectance*100;
 						freRefLabel.text = "" + reflectance.value/100;
-//					
+					
 						cMap.selected = !(MaterialYogurtistanLocationV2(m_selectedObj.material).colorMap == TextureMapDefaults.WHITEMIPMAP);
-//						
+						
 						kSpecSlider.value = MaterialYogurtistanLocationV2(m_selectedObj.material).shineness;
 						ksSlider.value = MaterialYogurtistanLocationV2(m_selectedObj.material).specular;
 						ksColorLabel.text = ""+ksSlider.value;
 						sMask.selected = !(MaterialYogurtistanLocationV2(m_selectedObj.material).specularMap == TextureMapDefaults.BLACKMIPMAP);
 						specChooserMat.value = MaterialYogurtistanLocationV2(m_selectedObj.material).specColor.toUintRGB();
-//						// TODOspecChooserMat
-//						
+						// TODOspecChooserMat
+						
 //						eMap.selected = !(MaterialYogurtistanLocationNight(m_selectedObj.material).emmisiveMask == TextureMapDefaults.BLACK);
 						emmisiveAlpha.value = MaterialYogurtistanLocationV2(m_selectedObj.material).emmisiveAlpha;
 						emmLabel.text = ""+emmisiveAlpha.value;
 						blendSlider.value = MaterialYogurtistanLocationV2(m_selectedObj.material).blendConstant;
 						blendLabel.text = ""+blendSlider.value;					
 						lMap.selected = !(MaterialYogurtistanLocationV2(m_selectedObj.material).lightMap == TextureMapDefaults.WHITE);		
+				}else{
+					allMAterial.visible = false;
+					locGradient.visible = false;
+					avatarGradient.visible = true;
+					m_avatarUI.visible = true;
 				}
 				
 			});
@@ -626,16 +901,178 @@ package debug
 		
 		/*******************************************************************************************************
 		 * 
-		 * GRADIENT
+		 * GRADIENT LOCATION
 		 * 
 		 * *****************************************************************************************************/
-		public static const DIFFUSE_GRADIENT:TextureMap = new TextureMap(createDiffuseGradient([0x3E3D3F, 0x3F3F3F, 0x48464C, 0x6A6B77, 0x747E8B]));
-		public static const AMBIENT_GRADIENT:TextureMap = new TextureMap(getAmbientDefault());
-		public static const GRADIENT:TextureMap = new TextureMap(setGradient([0x3E3D3F,0xFF0000, 0x3F3F3F], [0x808080, 0]));
 		
-		private static function setGradient(_difColors:Array, _ambColors:Array):BitmapData{
+		public static const AMB_UP:Color = Color.WHITE;
+		public static const AMB_DOWN:Color = Color.BLACK;
+		
+		private var m_difLoccolors:Array;
+		private var diffuseLocation:Component;
+		
+		public static const DIFFUSE_GRADIENT:TextureMap = new TextureMap(createDiffuseGradient([0x3E3D3F, 0x3F3F3F, 0x747E8B]));
+		
+		private static function createDiffuseGradient(m_colors:Array, _height:int=1):BitmapData{
+				var slider:Array = [0,128,256];
+				var gradient:Sprite = new Sprite();
+						
+				gradient.graphics.clear();
+				var mat:Matrix = new Matrix();
+				mat.createGradientBox( slider[1]-slider[0], _height, 0, slider[0],0);
+				gradient.graphics.beginGradientFill(GradientType.LINEAR, m_colors.slice(0,2) , [1,1], [0,255], mat, SpreadMethod.PAD );
+				gradient.graphics.drawRect(slider[0],0,slider[1]-slider[0],_height);
+				gradient.graphics.endFill();
+						
+				mat = new Matrix();
+				mat.createGradientBox( slider[2]-slider[1], _height, 0, slider[1],0);
+				gradient.graphics.beginGradientFill(GradientType.LINEAR, m_colors.slice(1,3), [1,1], [0,255], mat, SpreadMethod.PAD );
+				gradient.graphics.drawRect(slider[1],0,slider[2]-slider[1],_height);
+				gradient.graphics.endFill();
 			
+				var bitmapData:BitmapData = new BitmapData(256,_height);
+				bitmapData.draw( gradient );
+						
+				return bitmapData;
+		}
+		
+		private var locGradient:Window ;
+		public function createLocGradientUI(_posX:Number=0, _posY:Number=0):void{
+			locGradient = new Window(m_parent, _posX, _posY, "LOCATION Gradient");
+			locGradient.width = 270;
+			locGradient.height = 200;
+			
+			var lab:Label = new Label(locGradient, 5, 5, "AMBIENT Up/Down");
+					
+			var c1:ColorChooser = new ColorChooser( locGradient, 5, 25, 0xFFFFFF, function():void{
+				
+				var color:uint = c1.value;
+				var m_color:Vector.<Number> = new Vector.<Number>;
+				m_color[0] = (color >> 16 & 255 ) / 255;
+				m_color[1] = (color >> 8 & 255) / 255;
+				m_color[2] = (color & 255) / 255;
+				
+				var obj:SceneObjectRenderable;
+				
+				for (var key:Object in m_rMan.models) {
+					obj = (m_rMan.sceneObjs[key] as SceneObjectRenderable);
+					
+					MaterialYogurtistanLocationV2(obj.material).ambientUpColor = new Color(m_color[0], m_color[1],m_color[2]);
+				}
+				
+			});
+			c1.usePopup = true;
+			c1.useHandCursor = true;
+			
+			var c2:ColorChooser = new ColorChooser( locGradient, 100, 25, 0x000000, function():void{
+				var color:uint = c2.value;
+				var m_color:Vector.<Number> = new Vector.<Number>;
+				m_color[0] = (color >> 16 & 255 ) / 255;
+				m_color[1] = (color >> 8 & 255) / 255;
+				m_color[2] = (color & 255) / 255;
+				
+				var obj:SceneObjectRenderable;
+				
+				for (var key:Object in m_rMan.models) {
+					obj = (m_rMan.sceneObjs[key] as SceneObjectRenderable);
+					
+					MaterialYogurtistanLocationV2(obj.material).ambientDownColor = new Color(m_color[0], m_color[1],m_color[2]);
+				}
+				
+			});
+			c2.usePopup = true;
+			c2.useHandCursor = true;
+			lab  = new Label(locGradient, 5,  45, "DIFFUSE");
+					
+			m_difLoccolors = new Array;
+			m_difLoccolors[0] = 0x3E3D3F;
+			m_difLoccolors[1] = 0x3F3F3F;
+			m_difLoccolors[2] = 0x747E8B;
+		
+			diffuseLocation = new Component(locGradient, 0, 100);
+			diffuseLocation.width = 200;
+			diffuseLocation.height = 30;
+			drawDiffuseLocGradient();
+					
+				var d1:ColorChooser = new ColorChooser( locGradient, 150, 75, m_difLoccolors[0], function():void{
+					m_difLoccolors[0] = d1.value;
+					drawDiffuseLocGradient();
+				});
+				d1.usePopup = true;
+				d1.useHandCursor = true;
+					
+				var d2:ColorChooser = new ColorChooser( locGradient, 75, 75, m_difLoccolors[1], function():void{
+					m_difLoccolors[1] = d2.value;	
+					drawDiffuseLocGradient();
+				});
+				d2.usePopup = true;
+				d2.useHandCursor = true;
+					
+				var d3:ColorChooser = new ColorChooser( locGradient, 0, 75, m_difLoccolors[2], function():void{
+					m_difLoccolors[2] = d3.value;	
+					drawDiffuseLocGradient();
+				});
+				d3.usePopup = true;
+				d3.useHandCursor = true;
+					
+				
+				lab  = new Label(locGradient, 5,  140, "Scene Color:");
+					
+				var sceneColor:ColorChooser = new ColorChooser( locGradient, 80, 140, 0x000000, function():void{
+						
+					var color:uint = sceneColor.value;
+					var m_color:Vector.<Number> = new Vector.<Number>;
+					m_color[0] = (color >> 16 & 255 ) / 255;
+					m_color[1] = (color >> 8 & 255) / 255;
+					m_color[2] = (color & 255) / 255;
+						
+					m_setup.scene.sceneColor.r = m_color[0]
+					m_setup.scene.sceneColor.g = m_color[1]
+					m_setup.scene.sceneColor.b = m_color[2]
+				});
+				sceneColor.usePopup = true;
+				sceneColor.useHandCursor = true;
+
+					
+		}
+
+		private function getDifLocGrad(_height:Number, _posY:Number=0):Sprite{
 			var slider:Array = [0,128, 256];
+			var gradient:Sprite = new Sprite();
+			
+			gradient.graphics.clear();
+			var mat:Matrix = new Matrix();
+			mat.createGradientBox( slider[1]-slider[0], _height, 0, slider[0],_posY);
+			gradient.graphics.beginGradientFill(GradientType.LINEAR, m_difLoccolors.slice(0,2) , [1,1], [0,255], mat, SpreadMethod.PAD );
+			gradient.graphics.drawRect(slider[0],_posY,slider[1]-slider[0],_height);
+			gradient.graphics.endFill();
+			
+			mat = new Matrix();
+			mat.createGradientBox( slider[2]-slider[1], _height, 0, slider[1],_posY);
+			gradient.graphics.beginGradientFill(GradientType.LINEAR, m_difLoccolors.slice(1,3), [1,1], [0,255], mat, SpreadMethod.PAD );
+			gradient.graphics.drawRect(slider[1],_posY,slider[2]-slider[1],_height);
+			gradient.graphics.endFill();
+				
+			return gradient;
+		}
+	
+		private function drawDiffuseLocGradient():void{
+			
+			var bitmapData:BitmapData = new BitmapData(256,1);
+			bitmapData.draw( getDifLocGrad(1) );
+			DIFFUSE_GRADIENT.bitmapData = bitmapData;	
+			diffuseLocation.addChild(getDifLocGrad(20));
+		}
+		
+		/*******************************************************************************************************
+		 * 
+		 * GRADIENT AVATAR
+		 * 
+		 * *****************************************************************************************************/
+		public static const GRADIENT_AVATAR:TextureMap = new TextureMap(setAvatarGradient([0x3E3D3F, 0x3F3F3F, 0x48464C], [0x808080, 0]));
+		private static function setAvatarGradient(_difColors:Array, _ambColors:Array):BitmapData{
+			
+			var slider:Array = [0, 128, 256];
 			var gradient:Sprite = new Sprite();
 			
 			var _height:Number = 2;
@@ -653,7 +1090,19 @@ package debug
 			gradient.graphics.beginGradientFill(GradientType.LINEAR, _difColors.slice(1,3), [1,1], [0,255], mat, SpreadMethod.PAD );
 			gradient.graphics.drawRect(slider[1],_posY,slider[2]-slider[1],_height);
 			gradient.graphics.endFill();
-				
+			
+//			mat = new Matrix();
+//			mat.createGradientBox( slider[3]-slider[2], _height, 0, slider[2],_posY);
+//			gradient.graphics.beginGradientFill(GradientType.LINEAR, _difColors.slice(2,4), [1,1], [0,255], mat, SpreadMethod.PAD );
+//			gradient.graphics.drawRect(slider[2],_posY,slider[3]-slider[2],_height);
+//			gradient.graphics.endFill();
+//			
+//			mat = new Matrix();
+//			mat.createGradientBox( slider[4]-slider[3], _height, 0, slider[3],_posY);
+//			gradient.graphics.beginGradientFill(GradientType.LINEAR, _difColors.slice(3,5), [1,1], [0,255], mat, SpreadMethod.PAD );
+//			gradient.graphics.drawRect(slider[3],_posY,slider[4]-slider[3],_height);
+//			gradient.graphics.endFill();
+			
 			slider = [0,256];
 			_posY = 2;
 			
@@ -668,7 +1117,8 @@ package debug
 			
 			return bitmapData;
 		}
-		
+	
+		private var avatarGradient:Window;
 		private var ambient:Component;
 		private var diffuse:Component;
 		private var combined:Component;
@@ -678,24 +1128,23 @@ package debug
 		private var d1:ColorChooser;
 		private var d2:ColorChooser;
 		private var d3:ColorChooser;
-//		private var d4:ColorChooser;
-//		private var d5:ColorChooser;
+		private var d4:ColorChooser;
+		private var d5:ColorChooser;
 		private var m_colors:Array;
 		private var m_difcolors:Array;
-		private var sceneColor:ColorChooser;
-		
-		public function createGradient(_posX:Number=0, _posY:Number=0):void{
-			var materialWindow:Window = new Window(m_parent, _posX, _posY, "Gradient");
-			materialWindow.width = 270;
-			materialWindow.height = 200;
+		public function createGradientAvatar(_posX:Number=0, _posY:Number=0):void{
+			avatarGradient = new Window(m_parent, _posX, _posY, "AVATAR Gradient");
+			avatarGradient.width = 260;
+			avatarGradient.height = 200;
+			avatarGradient.visible = false;
 			
-			var lab:Label  = new Label(materialWindow, 5,  5, "Ambient:");
+			var lab:Label  = new Label(avatarGradient, 5,  5, "Ambient:");
 			
-			ambient = new Component(materialWindow, 0, 40);
+			ambient = new Component(avatarGradient, 0, 40);
 			ambient.width = 200;
 			ambient.height = 20;
 			
-			combined = new Component(materialWindow, 0, 125);
+			combined = new Component(avatarGradient, 0, 130);
 			combined.width = 200;
 			combined.height = 4;
 			
@@ -704,7 +1153,7 @@ package debug
 			m_colors[0] = 0x808080;
 			m_colors[1] = 0x000000;
 			drawGradient();
-			c1 = new ColorChooser( materialWindow, 100, 20, 0x808080, function():void{
+			c1 = new ColorChooser( avatarGradient, 0, 20, 0x808080, function():void{
 				
 				m_colors[0] = c1.value;
 				drawGradient();
@@ -714,7 +1163,7 @@ package debug
 			c1.usePopup = true;
 			c1.useHandCursor = true;
 			
-			c2 = new ColorChooser( materialWindow, 0, 20, 0x000000, function():void{
+			c2 = new ColorChooser( avatarGradient, 100, 20, 0x000000, function():void{
 				m_colors[1] = c2.value;
 				drawGradient();
 				drawCombinedGradient();
@@ -726,20 +1175,16 @@ package debug
 			m_difcolors[0] = 0x3E3D3F;
 			m_difcolors[1] = 0x3F3F3F;
 			m_difcolors[2] = 0x48464C;
-		//	m_difcolors[3] = 0x6A6B77;
-		//	m_difcolors[4] = 0x747E8B;
+	
 			
-			
-			diffuse = new Component(materialWindow, 0, 100);
+			diffuse = new Component(avatarGradient, 0, 105);
 			diffuse.width = 200;
 			diffuse.height = 30;
 			drawDiffuseGradient();
-			
 			drawCombinedGradient();
 			
-			lab  = new Label(materialWindow, 5,  60, "Diffuse:");
-			
-			d1 = new ColorChooser( materialWindow, 150, 75, 0x3E3D3F, function():void{
+			lab  = new Label(avatarGradient, 5,  60, "Diffuse:");
+			d1 = new ColorChooser( avatarGradient, 150, 75, 0x3E3D3F, function():void{
 				m_difcolors[0] = d1.value;
 				drawDiffuseGradient();
 				drawCombinedGradient();
@@ -748,7 +1193,7 @@ package debug
 			d1.useHandCursor = true;
 			
 			
-			d2 = new ColorChooser( materialWindow, 75, 75, 0x3F3F3F, function():void{
+			d2 = new ColorChooser( avatarGradient, 75, 75, 0x3F3F3F, function():void{
 				m_difcolors[1] = d2.value;	
 				drawDiffuseGradient();
 				drawCombinedGradient();
@@ -756,110 +1201,15 @@ package debug
 			d2.usePopup = true;
 			d2.useHandCursor = true;
 			
-			d3 = new ColorChooser( materialWindow, 0, 75, 0x48464C, function():void{
-				m_difcolors[2] = d3.value;	
+			d3 = new ColorChooser( avatarGradient, 0, 75, 0x48464C, function():void{
+				m_difcolors[2] = d3.value;		
 				drawDiffuseGradient();
 				drawCombinedGradient();
 			});
 			d3.usePopup = true;
 			d3.useHandCursor = true;
 			
-			
-				
-			
-			lab  = new Label(materialWindow, 5,  140, "Scene Color:");
-			
-			sceneColor = new ColorChooser( materialWindow, 80, 140, 0x000000, function():void{
-				
-				var color:uint = sceneColor.value;
-				var m_color:Vector.<Number> = new Vector.<Number>;
-				m_color[0] = (color >> 16 & 255 ) / 255;
-				m_color[1] = (color >> 8 & 255) / 255;
-				m_color[2] = (color & 255) / 255;
-				
-				m_setup.scene.sceneColor.r = m_color[0]
-				m_setup.scene.sceneColor.g = m_color[1]
-				m_setup.scene.sceneColor.b = m_color[2]
-			});
-			sceneColor.usePopup = true;
-			sceneColor.useHandCursor = true;
-			
-//			d3 = new ColorChooser( materialWindow, 0, 95, 0x48464C, function():void{
-//				m_difcolors[2] = d3.value;		
-//				drawDiffuseGradient();
-//				drawCombinedGradient();
-//			});
-//			d3.usePopup = true;
-//			d3.useHandCursor = true;
-//			
-//			d4 = new ColorChooser( materialWindow, 100, 95, 0x6A6B77, function():void{
-//				m_difcolors[3] = d4.value;	
-//				drawCombinedGradient();
-//			});
-//			d4.usePopup = true;
-//			d4.useHandCursor = true;
-//			
-//			d5 = new ColorChooser( materialWindow, 0, 115, 0x747E8B, function():void{
-//				m_difcolors[4] = d5.value;	
-//				drawDiffuseGradient();
-//				drawCombinedGradient();
-//			});
-//			d5.usePopup = true;
-//			d5.useHandCursor = true;
-			
 		}
-		private function getDifGrad(_height:Number, _posY:Number=0):Sprite{
-			var slider:Array = [0,128, 256];
-			var gradient:Sprite = new Sprite();
-			
-			gradient.graphics.clear();
-			var mat:Matrix = new Matrix();
-			mat.createGradientBox( slider[1]-slider[0], _height, 0, slider[0],_posY);
-			gradient.graphics.beginGradientFill(GradientType.LINEAR, m_difcolors.slice(0,2) , [1,1], [0,255], mat, SpreadMethod.PAD );
-			gradient.graphics.drawRect(slider[0],_posY,slider[1]-slider[0],_height);
-			gradient.graphics.endFill();
-			
-			mat = new Matrix();
-			mat.createGradientBox( slider[2]-slider[1], _height, 0, slider[1],_posY);
-			gradient.graphics.beginGradientFill(GradientType.LINEAR, m_difcolors.slice(1,3), [1,1], [0,255], mat, SpreadMethod.PAD );
-			gradient.graphics.drawRect(slider[1],_posY,slider[2]-slider[1],_height);
-			gradient.graphics.endFill();
-			
-//			mat = new Matrix();
-//			mat.createGradientBox( slider[2]-slider[1], _height, 0, slider[1],_posY);
-//			gradient.graphics.beginGradientFill(GradientType.LINEAR, m_difcolors.slice(1,3), [1,1], [0,255], mat, SpreadMethod.PAD );
-//			gradient.graphics.drawRect(slider[1],_posY,slider[2]-slider[1],_height);
-//			gradient.graphics.endFill();
-//			
-//			mat = new Matrix();
-//			mat.createGradientBox( slider[3]-slider[2], _height, 0, slider[2],_posY);
-//			gradient.graphics.beginGradientFill(GradientType.LINEAR, m_difcolors.slice(2,4), [1,1], [0,255], mat, SpreadMethod.PAD );
-//			gradient.graphics.drawRect(slider[2],_posY,slider[3]-slider[2],_height);
-//			gradient.graphics.endFill();
-//			
-//			mat = new Matrix();
-//			mat.createGradientBox( slider[4]-slider[3], _height, 0, slider[3],_posY);
-//			gradient.graphics.beginGradientFill(GradientType.LINEAR, m_difcolors.slice(3,5), [1,1], [0,255], mat, SpreadMethod.PAD );
-//			gradient.graphics.drawRect(slider[3],_posY,slider[4]-slider[3],_height);
-//			gradient.graphics.endFill();
-			
-			return gradient;
-		}
-		
-		private function getAmbGrad(_height:Number, _posY:Number=0):Sprite{
-			var slider:Array = [0,256];
-			var gradient:Sprite = new Sprite();
-			
-			gradient.graphics.clear();
-			var mat:Matrix = new Matrix();
-			mat.createGradientBox( slider[1]-slider[0], _height, 0, slider[0],_posY);
-			gradient.graphics.beginGradientFill(GradientType.LINEAR, m_colors.slice(0,2) , [1,1], [0,255], mat, SpreadMethod.PAD );
-			gradient.graphics.drawRect(slider[0],_posY,slider[1]-slider[0],_height);
-			gradient.graphics.endFill();
-			
-			return gradient;
-		}
-		
 		private function drawCombinedGradient():void{
 			
 			var slider:Array = [0,128,256];
@@ -880,24 +1230,7 @@ package debug
 			gradient.graphics.beginGradientFill(GradientType.LINEAR, m_difcolors.slice(1,3), [1,1], [0,255], mat, SpreadMethod.PAD );
 			gradient.graphics.drawRect(slider[1],_posY,slider[2]-slider[1],_height);
 			gradient.graphics.endFill();
-			
-//			mat = new Matrix();
-//			mat.createGradientBox( slider[2]-slider[1], _height, 0, slider[1],_posY);
-//			gradient.graphics.beginGradientFill(GradientType.LINEAR, m_difcolors.slice(1,3), [1,1], [0,255], mat, SpreadMethod.PAD );
-//			gradient.graphics.drawRect(slider[1],_posY,slider[2]-slider[1],_height);
-//			gradient.graphics.endFill();
-//			
-//			mat = new Matrix();
-//			mat.createGradientBox( slider[3]-slider[2], _height, 0, slider[2],_posY);
-//			gradient.graphics.beginGradientFill(GradientType.LINEAR, m_difcolors.slice(2,4), [1,1], [0,255], mat, SpreadMethod.PAD );
-//			gradient.graphics.drawRect(slider[2],_posY,slider[3]-slider[2],_height);
-//			gradient.graphics.endFill();
-//			
-//			mat = new Matrix();
-//			mat.createGradientBox( slider[4]-slider[3], _height, 0, slider[3],_posY);
-//			gradient.graphics.beginGradientFill(GradientType.LINEAR, m_difcolors.slice(3,5), [1,1], [0,255], mat, SpreadMethod.PAD );
-//			gradient.graphics.drawRect(slider[3],_posY,slider[4]-slider[3],_height);
-//			gradient.graphics.endFill();
+	
 			
 			slider = [0,256];
 			_posY = 1;
@@ -913,90 +1246,55 @@ package debug
 			var bitmapData:BitmapData = new BitmapData(256,2);
 			bitmapData.draw( gradient );
 			
-			GRADIENT.bitmapData = bitmapData;
+			GRADIENT_AVATAR.bitmapData = bitmapData;
 			
 		}
 		
 		private function drawGradient():void{
-			
 			var bitmapData:BitmapData = new BitmapData(256,2);
 			bitmapData.draw( getAmbGrad(2) );
-			AMBIENT_GRADIENT.bitmapData = bitmapData;
 			ambient.addChild(getAmbGrad(20));
 		}
 		
-		private function drawDiffuseGradient():void{
-			
+		private function drawDiffuseGradient():void{		
 			var bitmapData:BitmapData = new BitmapData(256,2);
-			bitmapData.draw( getDifGrad(2) );
-			DIFFUSE_GRADIENT.bitmapData = bitmapData;
-			
-			diffuse.addChild(getDifGrad(20));
-			
+			bitmapData.draw( getDifGrad(2) );			
+			diffuse.addChild(getDifGrad(20));	
 		}
-		
-		public static function getAmbientDefault():BitmapData{
-			var m_colors:Array = [0x808080, 0];
-			return createAmbientGradient(m_colors);
-		}
-		
-		private static function createDiffuseGradient(m_colors:Array):BitmapData{
+		private function getDifGrad(_height:Number, _posY:Number=0):Sprite{
 			var slider:Array = [0,128,256];
 			var gradient:Sprite = new Sprite();
 			
 			gradient.graphics.clear();
 			var mat:Matrix = new Matrix();
-			mat.createGradientBox( slider[1]-slider[0], 2, 0, slider[0],0);
-			gradient.graphics.beginGradientFill(GradientType.LINEAR, m_colors.slice(0,2) , [1,1], [0,255], mat, SpreadMethod.PAD );
-			gradient.graphics.drawRect(slider[0],0,slider[1]-slider[0],2);
+			mat.createGradientBox( slider[1]-slider[0], _height, 0, slider[0],_posY);
+			gradient.graphics.beginGradientFill(GradientType.LINEAR, m_difcolors.slice(0,2) , [1,1], [0,255], mat, SpreadMethod.PAD );
+			gradient.graphics.drawRect(slider[0],_posY,slider[1]-slider[0],_height);
 			gradient.graphics.endFill();
 			
 			mat = new Matrix();
-			mat.createGradientBox( slider[2]-slider[1], 2, 0, slider[1],0);
-			gradient.graphics.beginGradientFill(GradientType.LINEAR, m_colors.slice(1,3), [1,1], [0,255], mat, SpreadMethod.PAD );
-			gradient.graphics.drawRect(slider[1],0,slider[2]-slider[1],2);
+			mat.createGradientBox( slider[2]-slider[1], _height, 0, slider[1],_posY);
+			gradient.graphics.beginGradientFill(GradientType.LINEAR, m_difcolors.slice(1,3), [1,1], [0,255], mat, SpreadMethod.PAD );
+			gradient.graphics.drawRect(slider[1],_posY,slider[2]-slider[1],_height);
 			gradient.graphics.endFill();
-			
-//			mat = new Matrix();
-//			mat.createGradientBox( slider[2]-slider[1], 2, 0, slider[1],0);
-//			gradient.graphics.beginGradientFill(GradientType.LINEAR, m_colors.slice(1,3), [1,1], [0,255], mat, SpreadMethod.PAD );
-//			gradient.graphics.drawRect(slider[1],0,slider[2]-slider[1],2);
-//			gradient.graphics.endFill();
-//			
-//			mat = new Matrix();
-//			mat.createGradientBox( slider[3]-slider[2], 2, 0, slider[2],0);
-//			gradient.graphics.beginGradientFill(GradientType.LINEAR, m_colors.slice(2,4), [1,1], [0,255], mat, SpreadMethod.PAD );
-//			gradient.graphics.drawRect(slider[2],0,slider[3]-slider[2],2);
-//			gradient.graphics.endFill();
-//			
-//			mat = new Matrix();
-//			mat.createGradientBox( slider[4]-slider[3], 2, 0, slider[3],0);
-//			gradient.graphics.beginGradientFill(GradientType.LINEAR, m_colors.slice(3,5), [1,1], [0,255], mat, SpreadMethod.PAD );
-//			gradient.graphics.drawRect(slider[3],0,slider[4]-slider[3],2);
-//			gradient.graphics.endFill();
-			
-			var bitmapData:BitmapData = new BitmapData(256,2);
-			bitmapData.draw( gradient );
-			
-			return bitmapData;
+		
+			return gradient;
 		}
 		
-		private static function createAmbientGradient( m_colors:Array ):BitmapData{
+		private function getAmbGrad(_height:Number, _posY:Number=0):Sprite{
 			var slider:Array = [0,256];
 			var gradient:Sprite = new Sprite();
 			
 			gradient.graphics.clear();
 			var mat:Matrix = new Matrix();
-			mat.createGradientBox( slider[1]-slider[0], 2, 0, slider[0],0);
+			mat.createGradientBox( slider[1]-slider[0], _height, 0, slider[0],_posY);
 			gradient.graphics.beginGradientFill(GradientType.LINEAR, m_colors.slice(0,2) , [1,1], [0,255], mat, SpreadMethod.PAD );
-			gradient.graphics.drawRect(slider[0],0,slider[1]-slider[0],2);
+			gradient.graphics.drawRect(slider[0],_posY,slider[1]-slider[0],_height);
 			gradient.graphics.endFill();
 			
-			var bitmapData:BitmapData = new BitmapData(256,2);
-			bitmapData.draw( gradient );
-			
-			return bitmapData;
+			return gradient;
 		}
+		
 		
 		/*******************************************************************************************************
 		 * 
